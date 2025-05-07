@@ -1,0 +1,42 @@
+{
+  "name": "crypto-thing",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@babel/plugin-transform-private-methods": "^7.24.1",
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^5.17.1",
+    "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.17.1",
+    "@mui/material-nextjs": "^5.15.11",
+    "@mui/styles": "^6.4.11",
+    "@mui/x-date-pickers": "^7.4.0",
+    "@stytch/nextjs": "^19.0.0",
+    "@stytch/vanilla-js": "^4.11.2",
+    "@supabase/supabase-js": "^2.49.4",
+    "date-fns": "^3.6.0",
+    "dayjs": "^1.11.11",
+    "mysql2": "^3.9.7",
+    "next": "^14.2.28",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-lottie": "^1.2.4",
+    "stytch": "^10.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.32",
+    "@types/react": "18.3.20",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.3",
+    "typescript": "5.8.3"
+  }
+}
