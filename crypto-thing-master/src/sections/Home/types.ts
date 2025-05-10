@@ -25,3 +25,27 @@ interface UserDetails {
     marketprice: string;
     symbol: string;
   }
+
+  interface AllTimeProfits {
+  name: string;
+  percentage_profit: string;
+  total_profit: number;
+}
+interface BestPerformer {
+  coin_id: string;
+  coin_name: string;
+  total_profit: number;
+  percentage_profit: number;
+}
+interface WorstPerformer {
+  coin_id: string;
+  coin_name: string;
+  total_loss: number;
+  percentage_loss: number;
+}
+interface TodayCondition {
+  net_change_24h: number;
+  percentage_change_24h: number;
+  total_value_now: number;
+  total_investment: number;
+}

@@ -6,33 +6,14 @@ import {
   CurrencyBitcoin,
   CurrencyFranc,
 } from "@mui/icons-material";
-import { getAllTimeProfit, getBestPerformer, getTodayCondition, getWorstPerformer } from "@/utils/portfolio";
-import { useStytchUser } from "@stytch/nextjs";
 
-function Performers() {
-    const { user, isInitialized } = useStytchUser();
-  const [allTimeProfit, setAllTimeProfit] = useState();
-  const [bestPerformer, setBestPerformer] = useState();
-  const [worstPerformer, setWorstPerformer] = useState();
-  const [todayCondition, setTodayCondition] = useState();
+interface Props {
+  allTimeProfit: AllTimeProfits | undefined;
+  bestPerformer: BestPerformer | undefined;
+  worstPerformer: WorstPerformer | undefined;
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data1 = await getAllTimeProfit(user!.user_id)
-      setAllTimeProfit(data1)
-      const data2 = await getBestPerformer(user!.user_id)
-      setBestPerformer(data2)
-      const data3 = await getTodayCondition(user!.user_id)
-      setTodayCondition(data3)
-      const data4 = await getWorstPerformer(user!.user_id)
-      setWorstPerformer(data4)
-      console.log(data1)
-      console.log(data2)
-      console.log(data3)
-      console.log(data4)
-    };
-    fetchData()
-  },[user]);
+function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
 
   return (
     <Grid container sx={{ marginTop: 3, gap: 2 }}>
@@ -52,7 +33,7 @@ function Performers() {
             All-time profit
           </Typography>
           <Typography sx={{ fontSize: "20px", fontWeight: "700" }}>
-            $5000
+            {allTimeProfit?.total_profit}
           </Typography>
           <Typography
             sx={{
@@ -64,7 +45,8 @@ function Performers() {
               fontWeight: "500",
             }}
           >
-            +10% <ArrowDropDown />
+            {allTimeProfit?.percentage_profit}%
+            <ArrowDropDown />
           </Typography>
         </Box>
       </Grid>
@@ -93,7 +75,7 @@ function Performers() {
             }}
           >
             <CurrencyBitcoin />
-            Bitcoin
+            {bestPerformer?.coin_name}
           </Typography>
           <Typography
             sx={{
@@ -105,7 +87,7 @@ function Performers() {
               fontWeight: "500",
             }}
           >
-            +$2000 (5%)
+            ${bestPerformer?.total_profit} ({bestPerformer?.percentage_profit}%)
             <ArrowDropUp />
           </Typography>
         </Box>
@@ -135,7 +117,7 @@ function Performers() {
             }}
           >
             <CurrencyFranc />
-            Ethereum
+            {worstPerformer?.coin_name}
           </Typography>
           <Typography
             sx={{
@@ -147,7 +129,7 @@ function Performers() {
               fontWeight: "500",
             }}
           >
-            -$1000 (3%)
+            -${worstPerformer?.total_loss} ({worstPerformer?.percentage_loss}%)
             <ArrowDropDown />
           </Typography>
         </Box>

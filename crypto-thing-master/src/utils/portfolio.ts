@@ -17,6 +17,6 @@ export const getWorstPerformer = async(userId:string)=>{
 export const getTodayCondition = async(userId:string)=>{
     const response = await fetch(`/api/portfolio/today?userId=${userId}`)
     const data = await response.json()
-    return data.results[0]
+    return data
 }
 

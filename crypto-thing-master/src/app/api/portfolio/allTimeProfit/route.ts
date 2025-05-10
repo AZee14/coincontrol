@@ -5,10 +5,19 @@ import { NextResponse } from "next/server";
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    db: { schema: "cryptothing" },
-  }
+  { db: { schema: "cryptothing" } }
 );
+
+interface User {
+  first_name: string;
+  last_name: string;
+}
+
+interface PortfolioData {
+  total_value_now: number | null;
+  total_investment: number | null;
+  users: User;
+}
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -22,59 +31,43 @@ export async function GET(req: Request) {
   }
 
   try {
+    // Fetch portfolio summary with user details
     const { data, error } = await supabase
       .from("current_portfolio")
       .select(
         `
-        users (
-          first_name,
-          last_name
-        ),
-        assets (
-          coin_id,
-          coins (
-            coin_name
+          total_value_now,
+          total_investment,
+          users!inner(
+            first_name,
+            last_name
           )
-        ),
-        total_value_now,
-        total_investment
-      `
+        `
       )
-      .eq("user_id", userId);
-
+      .eq("user_id", userId)
+      .single();
+    
     if (error) throw error;
 
-    if (!data || data.length === 0) {
+    if (!data) {
       return NextResponse.json({ results: [] });
     }
 
-    const profitData = data.map((entry) => {
-      // Handle array cases safely
-      const user = Array.isArray(entry.users) ? entry.users[0] : entry.users;
-      const asset = Array.isArray(entry.assets)
-        ? entry.assets[0]
-        : entry.assets;
-      const coin = Array.isArray(asset?.coins) ? asset.coins[0] : asset.coins;
+    const { total_value_now, total_investment, users } = data as unknown as PortfolioData;
 
-      const totalNow = entry.total_value_now || 0;
-      const totalInvestment = entry.total_investment || 1; // Avoid division by 0
-      const profit = totalNow - totalInvestment;
-      const percentage = (profit / totalInvestment) * 100;
+    // Calculate all-time profit and percentage
+    const profit = (total_value_now ?? 0) - (total_investment ?? 0);
+    const percentage = total_investment
+      ? (profit / total_investment) * 100
+      : 0;
 
-      return {
-        name: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
-        coin: coin?.coin_name || "Unknown Coin",
-        total_profit: profit,
-        percentage_profit: percentage.toFixed(2),
-      };
-    });
+    const result = {
+      name: `${users.first_name} ${users.last_name}`.trim(),
+      total_profit: profit,
+      percentage_profit: percentage.toFixed(2),
+    };
 
-    // Find the coin with the maximum profit
-    const maxProfitCoin = profitData.reduce((prev, current) =>
-      current.total_profit > prev.total_profit ? current : prev
-    );
-
-    return NextResponse.json({ results: maxProfitCoin });
+    return NextResponse.json({ results: result });
   } catch (err: any) {
     console.error("Error fetching data:", err);
     return NextResponse.json(

@@ -37,6 +37,12 @@ import {
   CoinMetadata,
   UserDetails,
 } from "@/types";
+import {
+  getAllTimeProfit,
+  getBestPerformer,
+  getTodayCondition,
+  getWorstPerformer,
+} from "@/utils/portfolio";
 
 const HomePage: React.FC = () => {
   const { user, isInitialized } = useStytchUser();
@@ -56,6 +62,26 @@ const HomePage: React.FC = () => {
   const [pricePerCoin, setPricePerCoin] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
   const [selectedTab, setSelectedTab] = useState(0);
+  const [allTimeProfit, setAllTimeProfit] = useState<AllTimeProfits>();
+  const [bestPerformer, setBestPerformer] = useState<BestPerformer>();
+  const [worstPerformer, setWorstPerformer] = useState<WorstPerformer>();
+  const [todayCondition, setTodayCondition] = useState<TodayCondition>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data1 = await getAllTimeProfit(user!.user_id);
+      setAllTimeProfit(data1.results);
+      const data2 = await getBestPerformer(user!.user_id);
+      setBestPerformer(data2.results);
+      const data3 = await getTodayCondition(user!.user_id);
+      console.log(data3)
+      setTodayCondition(data3.results);
+      const data4 = await getWorstPerformer(user!.user_id);
+      console.log(data4)
+      setWorstPerformer(data4.results);
+    };
+    fetchData();
+  }, [user, coins, transactions]);
 
   const tabs = ["Assets", "Transactions"];
   const isAddTransactionDisabled =
@@ -205,12 +231,20 @@ const HomePage: React.FC = () => {
               <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
                 ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
               </Typography>
-              {/* <Typography
+              <Typography
                 fontWeight={500}
-                sx={{ color: "#ea3943", fontSize: "16px" }}
+                sx={{
+                  color:
+                    todayCondition?.net_change_24h === undefined ||
+                    todayCondition?.net_change_24h < 0
+                      ? "#ea3943"
+                      : "#16c784",
+                  fontSize: "16px",
+                }}
               >
-                - $15.03 -3.57% (24h)
-              </Typography> */}
+                {todayCondition?.net_change_24h}${" "}
+                {todayCondition?.percentage_change_24h}% (24h)
+              </Typography>
             </Box>
           </Grid>
           <Grid
@@ -233,7 +267,11 @@ const HomePage: React.FC = () => {
           </Grid>
         </Grid>
 
-        <Performers />
+        <Performers
+          allTimeProfit={allTimeProfit}
+          bestPerformer={bestPerformer}
+          worstPerformer={worstPerformer}
+        />
         <Divider sx={{ width: "100%", mt: 2 }} />
 
         <Tabs value={selectedTab} onChange={handleTabChange}>
