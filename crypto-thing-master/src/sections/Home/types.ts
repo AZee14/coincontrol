@@ -2,10 +2,10 @@ type coin = {name:string,shorthand:string}
 type coins = {name:string,shorthand:string}[]
 
 interface UserDetails {
-    User_ID: string;
-    First_Name: string;
-    Last_Name: string;
-    Total_Value_Now: number | null;
+    user_id: string;
+    first_name: string;
+    last_name: string;
+    total_value_now: number | null;
   }
   
   interface Transaction {
@@ -22,6 +22,6 @@ interface UserDetails {
   interface Coin {
     coin_id:String;
     coin_name: string;
-    marketPrice: string;
+    marketprice: string;
     symbol: string;
   }

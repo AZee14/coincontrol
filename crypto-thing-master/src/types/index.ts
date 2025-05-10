@@ -17,7 +17,7 @@ export interface Transaction {
     coin_id: string;
     coin_name: string;
     symbol: string;
-    marketPrice: string;
+    marketprice: string;
   }
   
   export interface PortfolioTransaction {
@@ -37,7 +37,7 @@ export interface Transaction {
   }
   
   export interface UserDetails {
-    First_Name?: string;
-    Last_Name?: string;
-    Total_Value_Now?: number;
+    first_name?: string;
+    last_name?: string;
+    total_value_now?: number;
   }

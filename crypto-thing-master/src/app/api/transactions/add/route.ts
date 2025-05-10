@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   if (req.method !== "POST") {
     return NextResponse.json(
       { message: "Method not allowed" },
@@ -10,7 +10,6 @@ export async function POST(req: Request, res: Response) {
   }
 
   const requestData = await req.json();
-
   const { type, coin, quantity, pricePerCoin, dateTime, total } = requestData;
 
   if (!coin || !quantity || !pricePerCoin || !dateTime) {
@@ -20,60 +19,67 @@ export async function POST(req: Request, res: Response) {
     );
   }
 
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      db: { schema: "cryptothing" },
+    }
+  );
+
+  // Extract userId from query
+  const url = new URL(req.url);
+  const userId = url.searchParams.get("userId");
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "userId parameter is required" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const db = await mysql.createConnection({
-      host: process.env.NEXT_PUBLIC_MYSQL_HOST,
-      port: parseInt(process.env.NEXT_PUBLIC_MYSQL_PORT as string),
-      database: process.env.NEXT_PUBLIC_MYSQL_DATABASE,
-      user: process.env.NEXT_PUBLIC_MYSQL_USER,
-      password: process.env.NEXT_PUBLIC_MYSQL_PASSWORD,
-    });
+    // Get portfolio_id from Current_Portfolio
+    const { data: portfolioData, error: portfolioError } = await supabase
+      .from("current_portfolio")
+      .select("portfolio_id")
+      .eq("user_id", userId)
+      .single();
 
-    // Extract userId from the query parameters
-    const url = new URL(req.url);
-    const userId = url.searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId parameter is required" },
-        { status: 400 }
-      );
+    if (portfolioError || !portfolioData) {
+      throw new Error("Failed to fetch portfolio ID");
     }
 
-    // Find the portfolio ID using the user ID
-    const portfolioQuery = `
-      SELECT Portfolio_ID FROM Current_Portfolio WHERE User_ID = ?;
-    `;
-    const [portfolioResult]: any = await db.execute(portfolioQuery, [userId]);
-    const portfolioId = portfolioResult[0].Portfolio_ID;
+    const portfolioId = portfolioData.portfolio_id;
 
-    // Insert the transaction into the Transaction_History table
-    const transactionQuery = `
-      INSERT INTO Transaction_History (Transaction_Type, Coin_ID, Portfolio_ID, Date, Amount, Value, Price_per_Coin)
-      VALUES (?, ?, ?, ?, ?, ?, ?);
-    `;
+    // Format fields for insertion
     const date = new Date(dateTime)
       .toISOString()
       .replace("T", " ")
       .replace("Z", "");
+
     const amount = type === "Buy" ? quantity : -quantity;
     const value = type === "Buy" ? total : -total;
-    const transactionValues = [
-      type,
-      coin,
-      portfolioId,
-      date,
-      amount,
-      value,
-      pricePerCoin,
-    ];
 
-    const [transactionResult] = await db.execute(
-      transactionQuery,
-      transactionValues
-    );
+    // Insert into transaction_history
+    const { data: transactionResult, error: insertError } = await supabase
+      .from("transaction_history")
+      .insert([
+        {
+          transaction_type: type,
+          coin_id: coin,
+          portfolio_id: portfolioId,
+          date: date,
+          amount: amount,
+          value: value,
+          price_per_coin: pricePerCoin,
+        },
+      ])
+      .select("*");
 
-    db.end();
+    if (insertError) {
+      throw insertError;
+    }
 
     return NextResponse.json(
       { message: "Transaction added successfully", result: transactionResult },
@@ -82,7 +88,7 @@ export async function POST(req: Request, res: Response) {
   } catch (error) {
     console.error("Error inserting data:", error);
     return NextResponse.json(
-      { message: "Internal server error", error },
+      { message: "Internal server error", error: (error as Error).message },
       { status: 500 }
     );
   }

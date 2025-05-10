@@ -1,62 +1,62 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
-import { timeStamp } from "console";
+import { createClient } from '@supabase/supabase-js';
 
-export async function POST(req: Request, res: Response) {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey, { db: { schema: 'cryptothing' } });
+
+
+export async function POST(req: Request) {
   if (req.method !== "POST") {
-    return NextResponse.json(
-      { message: "Method not allowed" },
-      { status: 405 }
-    );
-  }
-
-  const requestData = await req.json();
-
-  const { userId, firstName, lastName, email } = requestData;
-
-  if (!userId || !email) {
-    return NextResponse.json(
-      { message: "Missing required fields" },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: "Method not allowed" }, { status: 405 });
   }
 
   try {
-    const db = await mysql.createConnection({
-      host: process.env.NEXT_PUBLIC_MYSQL_HOST,
-      port: parseInt(process.env.NEXT_PUBLIC_MYSQL_PORT as string),
-      database: process.env.NEXT_PUBLIC_MYSQL_DATABASE,
-      user: process.env.NEXT_PUBLIC_MYSQL_USER,
-      password: process.env.NEXT_PUBLIC_MYSQL_PASSWORD,
-    });
+    const requestData = await req.json();
+    const { userId, firstName, lastName, email } = requestData;
 
-    // add lastlogin and registration date
-    const query = `
-      INSERT INTO Users (User_ID, First_Name, Last_Name, EmailAddress, RegistrationDate)
-      VALUES (?, ?, ?, ?, ?);
-    `;
-    const values = [userId, firstName, lastName, email, (new Date()).toISOString()];
+    if (!userId || !email) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
 
-    const secondQuery = `
-    INSERT INTO Current_Portfolio (USER_ID) VALUES (?);
+    const registrationDate = new Date().toISOString();
 
-    `;
-    const secondValues = [userId];
+    // Insert into cryptothing.users
+    const { error: userInsertError } = await supabase
+      .from("users")
+      .insert([
+        {
+          user_id: userId,
+          first_name: firstName,
+          last_name: lastName,
+          emailaddress: email,
+          registrationdate: registrationDate,
+        },
+      ]);
 
-    const [result] = await db.execute(query, values);
-    const [secondResult] = await db.execute(secondQuery, secondValues);
+    if (userInsertError) {
+      console.error("Error inserting into Users:", userInsertError);
+      return NextResponse.json({ message: "Error inserting user", error: userInsertError }, { status: 500 });
+    }
 
-    db.end();
+    // Insert into cryptothing.current_portfolio
+    const { error: portfolioInsertError } = await supabase
+      .from("current_portfolio")
+      .insert([
+        {
+          user_id: userId,
+        },
+      ]);
 
-    return NextResponse.json(
-      { message: "User added successfully", result },
-      { status: 201 }
-    );
+    if (portfolioInsertError) {
+      console.error("Error inserting into Current_Portfolio:", portfolioInsertError);
+      return NextResponse.json({ message: "Error inserting portfolio", error: portfolioInsertError }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: "User added successfully" }, { status: 201 });
+
   } catch (error) {
-    console.error("Error inserting data:", error);
-    return NextResponse.json(
-      { message: "Internal server error", error },
-      { status: 500 }
-    );
+    console.error("Unexpected error:", error);
+    return NextResponse.json({ message: "Internal server error", error }, { status: 500 });
   }
 }

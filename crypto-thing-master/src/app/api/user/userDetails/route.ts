@@ -3,18 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 
 // Define interface for type safety
 interface UserDetails {
-  User_ID: string;
-  First_Name: string;
-  Last_Name: string;
-  Total_Value_Now: number;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  total_value_now: number;
 }
 
 export async function GET(req: Request) {
   // Create a Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    db: { schema: "cryptothing" }
+  }
+);
 
   // Extract userId from the query parameters
   const url = new URL(req.url);
@@ -42,24 +45,24 @@ export async function GET(req: Request) {
     
     // Query user details with a join
     const { data, error } = await supabase
-      .from('Users')
+      .from('users')
       .select(`
-        User_ID,
-        First_Name,
-        Last_Name,
-        Current_Portfolio(Total_Value_Now)
+        user_id,
+        first_name,
+        last_name,
+        current_portfolio(total_value_now)
       `)
-      .eq('User_ID', userId)
+      .eq('user_id', userId)
       .single();
     
     if (error) throw error;
     
     // Format the response to match the expected structure
     const formattedData = {
-      User_ID: data.User_ID,
-      First_Name: data.First_Name,
-      Last_Name: data.Last_Name,
-      Total_Value_Now: data.Current_Portfolio?.[0]?.Total_Value_Now || 0
+      user_id: data.user_id,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      total_value_now: data.current_portfolio?.[0]?.total_value_now || 0
     };
     
     return NextResponse.json({ results: [formattedData] });

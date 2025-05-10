@@ -62,14 +62,14 @@ function AppBar() {
 
   // UNCOMMENT THIS
   // React.useEffect(() => {
-    // const interval = setInterval(() => {
-      // A function here to update the data again and again in database
-          // updateCoins();
-    // }, COIN_POST_REQUEST_TIME);
+  // const interval = setInterval(() => {
+  // A function here to update the data again and again in database
+  // updateCoins();
+  // }, COIN_POST_REQUEST_TIME);
 
-    // }, 30000);
+  // }, 30000);
 
-    // return () => clearInterval(interval);
+  // return () => clearInterval(interval);
   // }, []);
 
   const [x, setX] = React.useState(1);

@@ -14,10 +14,11 @@ import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { useStytchUser } from "@stytch/nextjs";
 import { createClient } from '@supabase/supabase-js';
+import { getAssets } from "@/utils/user";
 
 // Define the type for asset data
 interface AssetData {
-  id?: string | number;
+  coin_id?: string | number;
   name: string;
   shorthand: string;
   current_price?: number;
@@ -66,7 +67,8 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error("Supabase URL or Key is not defined in environment variables.");
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, { db: { schema: 'cryptothing' } });
+
 
 function Assets() {
   const classes = useStyles();
@@ -83,15 +85,11 @@ function Assets() {
         setLoading(true);
         
         // Fetch user's assets from Supabase
-        const { data, error } = await supabase
-          .from('assets')
-          .select('*')
-          .eq('user_id', user.user_id);
-          
+        const data = await getAssets(user.user_id)
+                  
         if (error) throw error;
         
-        // If no assets found, use empty array
-        setAssets(data || [] as AssetData[]);
+        setAssets(data.results || [] as AssetData[]);
       } catch (err) {
         console.error("Error fetching assets:", err);
         setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -101,7 +99,7 @@ function Assets() {
     };
 
     fetchAssets();
-  }, [isInitialized, user]);
+  }, [isInitialized, user,error]);
 
   // Fallback for loading state
   if (loading && isInitialized && user) {
@@ -182,7 +180,7 @@ function Assets() {
                   sx={{ textAlign: 'left !important' }}
                 >
                   <Typography sx={{ color: "black", fontSize: "15px" }}>
-                    {asset.name}
+                    {asset.coin_id}
                   </Typography>
                   <Typography color="secondary" sx={{ fontSize: "14px" }}>
                     {asset.shorthand?.toUpperCase()}

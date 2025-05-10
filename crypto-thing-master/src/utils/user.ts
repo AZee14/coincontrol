@@ -1,6 +1,5 @@
 export const getUserDetails = async(userId:string)=>{
     const response = await fetch(`/api/user/userDetails?userId=${userId}`)
-    console.log(response)
     const data = await response.json()
     return data.results[0]
   }

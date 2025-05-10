@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { createClient } from "@supabase/supabase-js";
 
-export async function DELETE(req: Request, res: Response) {
+export async function DELETE(req: Request) {
   if (req.method !== "DELETE") {
     return NextResponse.json(
       { message: "Method not allowed" },
@@ -9,46 +9,44 @@ export async function DELETE(req: Request, res: Response) {
     );
   }
 
+  // Extract transactionId from the URL query
+  const url = new URL(req.url);
+  const transactionId = url.searchParams.get("transactionId");
+
+  if (!transactionId) {
+    return NextResponse.json(
+      { error: "transactionId parameter is required" },
+      { status: 400 }
+    );
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      db: { schema: "cryptothing" },
+    }
+  );
+
   try {
-    const db = await mysql.createConnection({
-      host: process.env.NEXT_PUBLIC_MYSQL_HOST,
-      port: parseInt(process.env.NEXT_PUBLIC_MYSQL_PORT as string),
-      database: process.env.NEXT_PUBLIC_MYSQL_DATABASE,
-      user: process.env.NEXT_PUBLIC_MYSQL_USER,
-      password: process.env.NEXT_PUBLIC_MYSQL_PASSWORD,
-    });
+    // Delete the transaction
+    const { data, error } = await supabase
+      .from("transaction_history")
+      .delete()
+      .eq("transaction_id", transactionId);
 
-    // Extract transactionId from the query parameters
-    const url = new URL(req.url);
-    const transactionId = url.searchParams.get("transactionId");
-
-    if (!transactionId) {
-      return NextResponse.json(
-        { error: "transactionId parameter is required" },
-        { status: 400 }
-      );
+    if (error) {
+      throw error;
     }
 
-    // Delete that transaction from the database. Remember that you will also have to update everything else when that transaction gets deleted like the portfolio and stuff. A lot of things will be updated. Handle this carefully
-    const query = `
-    DELETE FROM Transaction_History
-    WHERE Transaction_ID = ?
-  `;
-
-    const values = [transactionId];
-
-    const [result] = await db.execute(query, values);
-
-    db.end();
-
     return NextResponse.json(
-      { message: "Transaction deleted successfully", result },
-      { status: 201 }
+      { message: "Transaction deleted successfully", result: data },
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting data:", error);
+    console.error("Error deleting transaction:", error);
     return NextResponse.json(
-      { message: "Internal server error", error },
+      { message: "Internal server error", error: (error as Error).message },
       { status: 500 }
     );
   }

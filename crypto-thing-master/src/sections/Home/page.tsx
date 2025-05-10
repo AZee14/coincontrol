@@ -30,11 +30,17 @@ import { sendTransactionData } from "@/utils/transactions";
 import { getTransactions, getUserDetails } from "@/utils/user";
 import { useStytchUser } from "@stytch/nextjs";
 import { getAllCoins } from "@/utils/coins";
-import { Transaction, PortfolioTransaction, Coin, CoinMetadata, UserDetails } from "@/types";
+import {
+  Transaction,
+  PortfolioTransaction,
+  Coin,
+  CoinMetadata,
+  UserDetails,
+} from "@/types";
 
 const HomePage: React.FC = () => {
   const { user, isInitialized } = useStytchUser();
-  const [transactions, setTransactions] = useState<PortfolioTransaction[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [coins, setCoins] = useState<Coin[]>([]);
   const [loading, setLoading] = useState({
@@ -51,25 +57,23 @@ const HomePage: React.FC = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [selectedTab, setSelectedTab] = useState(0);
 
-  const coinList: CoinMetadata[] = [
-    { coin_id: "bitcoin", coin_name: "Bitcoin", symbol: "BTC" },
-    { coin_id: "ethereum", coin_name: "Ethereum", symbol: "ETH" },
-  ];
-
   const tabs = ["Assets", "Transactions"];
-  const isAddTransactionDisabled = !selectedCoin || !quantity || !pricePerCoin || !dateTime;
+  const isAddTransactionDisabled =
+    !selectedCoin || !quantity || !pricePerCoin || !dateTime;
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
-  const handleTabChange = (e: React.SyntheticEvent, newValue: number) => setSelectedTab(newValue);
-  const handleModalTabChange = (e: React.SyntheticEvent, newValue: number) => setModalTab(newValue);
+  const handleTabChange = (e: React.SyntheticEvent, newValue: number) =>
+    setSelectedTab(newValue);
+  const handleModalTabChange = (e: React.SyntheticEvent, newValue: number) =>
+    setModalTab(newValue);
 
   const handleCoinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.value;
     const coinObj = coins.find((c) => c.coin_id === selected);
     if (coinObj) {
       setSelectedCoin(selected);
-      setPricePerCoin(coinObj.marketPrice);
+      setPricePerCoin(coinObj.marketprice);
     }
   };
 
@@ -84,7 +88,14 @@ const HomePage: React.FC = () => {
   };
 
   const handleAddTransaction = async () => {
-    if (!user?.user_id || !selectedCoin || !quantity || !pricePerCoin || !dateTime) return;
+    if (
+      !user?.user_id ||
+      !selectedCoin ||
+      !quantity ||
+      !pricePerCoin ||
+      !dateTime
+    )
+      return;
 
     try {
       const transactionData: PortfolioTransaction = {
@@ -163,18 +174,18 @@ const HomePage: React.FC = () => {
     fetchCoins();
   }, []);
 
-  const formattedTransactions: Transaction[] = Array.isArray(transactions)
+  const formattedTransactions: any[] = Array.isArray(transactions)
     ? transactions.map((tx) => {
-        const coin = coinList.find((c) => c.coin_id === tx.coin);
+        const coin = coins.find((c) => c.coin_id === tx.coin_id);
         return {
-          id: String(tx.id || ""),
-          Type: tx.type,
-          Name_of_Coin: coin?.coin_name || tx.coin,
-          Shorthand_Notation: coin?.symbol || tx.coin,
-          Date_and_Time_of_Transaction: tx.dateTime,
-          Price_at_Transaction: tx.pricePerCoin,
-          Value_in_Dollars: tx.total,
-          Amount_of_Coin: tx.quantity,
+          id: String(tx.transaction_id || ""),
+          Type: tx.transaction_type,
+          Name_of_Coin: coin?.coin_name,
+          Shorthand_Notation: coin?.symbol,
+          Date_and_Time_of_Transaction: tx.date,
+          Price_at_Transaction: tx.price_per_coin,
+          Value_in_Dollars: tx.value,
+          Amount_of_Coin: tx.amount,
         };
       })
     : [];
@@ -185,18 +196,32 @@ const HomePage: React.FC = () => {
         <Grid container>
           <Grid item xs={6}>
             <Box textAlign="left">
-              <Typography fontWeight={500} sx={{ color: "#616e85", fontSize: "24px" }}>
-                {userDetails?.First_Name} {userDetails?.Last_Name}'s Portfolio
+              <Typography
+                fontWeight={500}
+                sx={{ color: "#616e85", fontSize: "24px" }}
+              >
+                {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
               </Typography>
               <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
-                ${userDetails?.Total_Value_Now?.toFixed(2) || "0.00"}
+                ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
               </Typography>
-              <Typography fontWeight={500} sx={{ color: "#ea3943", fontSize: "16px" }}>
+              {/* <Typography
+                fontWeight={500}
+                sx={{ color: "#ea3943", fontSize: "16px" }}
+              >
                 - $15.03 -3.57% (24h)
-              </Typography>
+              </Typography> */}
             </Box>
           </Grid>
-          <Grid item xs={6} sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+          <Grid
+            item
+            xs={6}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
             <Button
               variant="contained"
               sx={{ backgroundColor: "primary.main", borderRadius: "10px" }}
@@ -217,16 +242,40 @@ const HomePage: React.FC = () => {
           ))}
         </Tabs>
 
-        {selectedTab === 0 ? <Assets /> : <Transactions data={formattedTransactions} />}
+        {selectedTab === 0 ? (
+          <Assets />
+        ) : (
+          <Transactions data={formattedTransactions} />
+        )}
 
         <Modal open={isModalOpen} onClose={handleCloseModal}>
-          <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "27rem", bgcolor: "background.paper", boxShadow: 24, p: 4, borderRadius: "15px" }}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "27rem",
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: "15px",
+            }}
+          >
             <Box display="flex" justifyContent="space-between">
-              <Typography variant="h6" fontWeight={600}>Add Transaction</Typography>
-              <IconButton onClick={handleCloseModal}><Close /></IconButton>
+              <Typography variant="h6" fontWeight={600}>
+                Add Transaction
+              </Typography>
+              <IconButton onClick={handleCloseModal}>
+                <Close />
+              </IconButton>
             </Box>
 
-            <Tabs value={modalTab} onChange={handleModalTabChange} variant="fullWidth">
+            <Tabs
+              value={modalTab}
+              onChange={handleModalTabChange}
+              variant="fullWidth"
+            >
               <Tab label="Buy" />
               <Tab label="Sell" />
             </Tabs>
@@ -243,7 +292,9 @@ const HomePage: React.FC = () => {
                 disabled={loading.coins}
               >
                 {loading.coins ? (
-                  <MenuItem disabled><CircularProgress size={20} /></MenuItem>
+                  <MenuItem disabled>
+                    <CircularProgress size={20} />
+                  </MenuItem>
                 ) : coins.length > 0 ? (
                   coins.map((coin) => (
                     <MenuItem key={coin.coin_id} value={coin.coin_id}>
@@ -288,7 +339,9 @@ const HomePage: React.FC = () => {
                 />
               </DemoItem>
 
-              <Box sx={{ backgroundColor: "#eff2f5", borderRadius: "10px", p: 2 }}>
+              <Box
+                sx={{ backgroundColor: "#eff2f5", borderRadius: "10px", p: 2 }}
+              >
                 <Typography sx={{ color: "#616e85", fontSize: "14px" }}>
                   {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
                 </Typography>

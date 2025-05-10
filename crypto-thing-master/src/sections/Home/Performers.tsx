@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Grid, Typography, Box, Container, Button } from "@mui/material";
 import {
   ArrowDropDown,
@@ -6,8 +6,34 @@ import {
   CurrencyBitcoin,
   CurrencyFranc,
 } from "@mui/icons-material";
+import { getAllTimeProfit, getBestPerformer, getTodayCondition, getWorstPerformer } from "@/utils/portfolio";
+import { useStytchUser } from "@stytch/nextjs";
 
 function Performers() {
+    const { user, isInitialized } = useStytchUser();
+  const [allTimeProfit, setAllTimeProfit] = useState();
+  const [bestPerformer, setBestPerformer] = useState();
+  const [worstPerformer, setWorstPerformer] = useState();
+  const [todayCondition, setTodayCondition] = useState();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data1 = await getAllTimeProfit(user!.user_id)
+      setAllTimeProfit(data1)
+      const data2 = await getBestPerformer(user!.user_id)
+      setBestPerformer(data2)
+      const data3 = await getTodayCondition(user!.user_id)
+      setTodayCondition(data3)
+      const data4 = await getWorstPerformer(user!.user_id)
+      setWorstPerformer(data4)
+      console.log(data1)
+      console.log(data2)
+      console.log(data3)
+      console.log(data4)
+    };
+    fetchData()
+  },[user]);
+
   return (
     <Grid container sx={{ marginTop: 3, gap: 2 }}>
       {/* First Box */}
@@ -18,7 +44,7 @@ function Performers() {
           borderRadius={4}
           boxShadow={1}
           textAlign="center"
-          sx={{ height: "4.5rem",width:'9rem' }}
+          sx={{ height: "4.5rem", width: "9rem" }}
         >
           <Typography
             sx={{ fontSize: "14px", fontWeight: "500", color: "#616e85" }}
@@ -50,7 +76,7 @@ function Performers() {
           borderRadius={4}
           boxShadow={1}
           textAlign="center"
-          sx={{ height: "4.5rem",width:'9rem' }}
+          sx={{ height: "4.5rem", width: "9rem" }}
         >
           <Typography
             sx={{ fontSize: "14px", fontWeight: "500", color: "#616e85" }}
@@ -92,7 +118,7 @@ function Performers() {
           borderRadius={4}
           boxShadow={1}
           textAlign="center"
-          sx={{ height: "4.5rem",width:'9rem' }}
+          sx={{ height: "4.5rem", width: "9rem" }}
         >
           <Typography
             sx={{ fontSize: "14px", fontWeight: "500", color: "#616e85" }}
