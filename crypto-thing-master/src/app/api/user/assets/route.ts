@@ -11,7 +11,7 @@ const supabase = createClient(
 );
 
 export async function GET(req: Request) {
-  // 2) Define your AssetData interface locally if you need it for TS
+  // Define AssetData interface locally for TS
   interface AssetData {
     name: string;
     shorthand: string;
@@ -19,63 +19,47 @@ export async function GET(req: Request) {
     hourly_change: number;
     daily_change: number;
     weekly_change: number;
-    coin_amount: number;
-    coin_value: number;
+    holding_amount: number;
+    holding_value: number;
     avg_buy_price: number;
     profit_loss_amount: number;
     profit_loss_percentage: number;
   }
 
   try {
-    // 3) Pull userId from query params
+    // 2) Pull userId from query params
     const url = new URL(req.url);
     const userId = url.searchParams.get("userId");
     if (!userId) {
-      return NextResponse.json(
-        { error: "userId parameter is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "userId parameter is required" }, { status: 400 });
     }
 
-    // 4) Try the RPC first (will run in cryptothing schema)
-    const { data: rpcData, error: rpcError } = await supabase
-      .rpc("get_user_assets", { user_id_param: userId });
-    if (!rpcError && rpcData) {
-      return NextResponse.json({ results: rpcData });
-    }
-
-    // 5) Fallback: raw queries against your tables—all in 'cryptothing'
-    console.log("RPC failed or not defined, falling back:", rpcError?.message);
-
-    // a) Fetch all assets in the current portfolio
-    const { data: rawAssets, error: rawAssetsError } = await supabase
-      .from("assets")
-      .select("portfolio_id, coin_id, amount, value")
-      .order("coin_id", { ascending: true });
-    if (rawAssetsError) throw rawAssetsError;
-
-    // b) Get this user’s portfolio ID
+    // 3) Fetch this user’s portfolio ID
     const { data: portfolioData, error: portfolioError } = await supabase
       .from("current_portfolio")
       .select("portfolio_id")
       .eq("user_id", userId)
       .single();
-    if (portfolioError) throw portfolioError;
+    if (portfolioError || !portfolioData) throw portfolioError || new Error("Portfolio not found");
+    const portfolioId = portfolioData.portfolio_id;
 
-    // c) Filter assets to this portfolio
-    const userAssets = rawAssets.filter(
-      (a) => a.portfolio_id === portfolioData.portfolio_id
-    );
-    const coinIds = [...new Set(userAssets.map((a) => a.coin_id))];
+    // 4) Fetch assets for that portfolio (amount and value)
+    const { data: assetRows, error: assetError } = await supabase
+      .from("assets")
+      .select("coin_id, amount, value")
+      .eq("portfolio_id", portfolioId)
+      .order("coin_id", { ascending: true });
+    if (assetError) throw assetError;
 
-    // d) Fetch coin metadata
+    // 5) Fetch coin metadata
+    const coinIds = assetRows?.map(a => a.coin_id) || [];
     const { data: coinsData, error: coinsError } = await supabase
       .from("coins")
       .select("coin_id, coin_name, symbol, marketprice, volume1h, volume24h, volume7d")
       .in("coin_id", coinIds);
     if (coinsError) throw coinsError;
 
-    // e) Fetch buy transactions for average price
+    // 6) Fetch buy transactions to compute avg buy price
     const { data: txData, error: txError } = await supabase
       .from("transaction_history")
       .select("coin_id, transaction_type, price_per_coin, amount")
@@ -83,22 +67,20 @@ export async function GET(req: Request) {
       .in("coin_id", coinIds);
     if (txError) throw txError;
 
-    // f) Build lookup maps
-    const coinMap = new Map<number, Partial<AssetData>>();
-    coinsData.forEach((c) =>
-      coinMap.set(c.coin_id, {
-        name: c.coin_name,
-        shorthand: c.symbol,
-        current_price: c.marketprice,
-        hourly_change: c.volume1h,
-        daily_change: c.volume24h,
-        weekly_change: c.volume7d,
-      })
-    );
+    // 7) Build lookup maps
+    const coinMap = new Map<any, Partial<AssetData>>();
+    coinsData?.forEach(c => coinMap.set(c.coin_id, {
+      name: c.coin_name,
+      shorthand: c.symbol,
+      current_price: c.marketprice,
+      hourly_change: c.volume1h,
+      daily_change: c.volume24h,
+      weekly_change: c.volume7d,
+    }));
 
-    const avgBuyMap = new Map<number, number>();
-    coinIds.forEach((id) => {
-      const buys = txData.filter((t) => t.coin_id === id);
+    const avgBuyMap = new Map<any, number>();
+    coinIds.forEach(id => {
+      const buys = txData?.filter(t => t.coin_id === id) || [];
       if (buys.length) {
         const totalCost = buys.reduce((sum, t) => sum + t.price_per_coin * t.amount, 0);
         const totalAmt = buys.reduce((sum, t) => sum + t.amount, 0);
@@ -108,33 +90,30 @@ export async function GET(req: Request) {
       }
     });
 
-    // g) Compose final response
-    const results: AssetData[] = userAssets.map((a) => {
+    // 8) Compose final response including quantity and value
+    const results: AssetData[] = (assetRows || []).map(a => {
       const info = coinMap.get(a.coin_id) || {};
       const avg = avgBuyMap.get(a.coin_id) || 0;
       const profit = a.value - a.amount * avg;
       const profitPct = avg > 0 ? (profit / (a.amount * avg)) * 100 : 0;
       return {
-        name:           info.name!,
-        shorthand:      info.shorthand!,
-        current_price:  info.current_price!,
-        hourly_change:  info.hourly_change!,
-        daily_change:   info.daily_change!,
-        weekly_change:  info.weekly_change!,
-        coin_amount:    a.amount,
-        coin_value:     a.value,
-        avg_buy_price:  avg,
-        profit_loss_amount:    profit,
-        profit_loss_percentage: profitPct,
+        name: info.name!,
+        shorthand: info.shorthand!,
+        current_price: info.current_price!,
+        hourly_change: info.hourly_change!,
+        daily_change: info.daily_change!,
+        weekly_change: info.weekly_change!,
+        holding_amount: a.amount,
+        holding_value: a.value,
+        avg_buy_price: avg,
+        profit_loss_amount: profit,
+        profit_loss_percentage: Number(profitPct.toFixed(2)),
       };
     });
 
     return NextResponse.json({ results });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching data:", error);
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

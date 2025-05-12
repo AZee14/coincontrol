@@ -74,10 +74,8 @@ const HomePage: React.FC = () => {
       const data2 = await getBestPerformer(user!.user_id);
       setBestPerformer(data2.results);
       const data3 = await getTodayCondition(user!.user_id);
-      console.log(data3)
       setTodayCondition(data3.results);
       const data4 = await getWorstPerformer(user!.user_id);
-      console.log(data4)
       setWorstPerformer(data4.results);
     };
     fetchData();
