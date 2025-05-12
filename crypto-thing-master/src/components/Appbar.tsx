@@ -60,25 +60,17 @@ function AppBar() {
     setAnchorElUser(null);
   };
 
-  // UNCOMMENT THIS
+  // // UNCOMMENT THIS
   // React.useEffect(() => {
-  // const interval = setInterval(() => {
-  // A function here to update the data again and again in database
-  // updateCoins();
-  // }, COIN_POST_REQUEST_TIME);
+  //   // run immediately
+  //   updateCoins();
 
-  // }, 30000);
-
-  // return () => clearInterval(interval);
-  // }, []);
-
-  const [x, setX] = React.useState(1);
-
-  // React.useEffect(() => {
-  //   if (x) {
+  //   // then schedule
+  //   const interval = setInterval(() => {
   //     updateCoins();
-  //     setX(0);
-  //   }
+  //   }, COIN_POST_REQUEST_TIME);
+
+  //   return () => clearInterval(interval);
   // }, []);
 
   return (

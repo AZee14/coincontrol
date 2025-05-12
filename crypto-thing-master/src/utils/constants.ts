@@ -1,2 +1,2 @@
-export const COIN_POST_REQUEST_TIME = 5000;
+export const COIN_POST_REQUEST_TIME = 1800000;
 export const OTHER_FETCH_REQUEST_TIME = 5000;

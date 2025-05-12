@@ -1,10 +1,7 @@
 "use client";
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import HomePage from "@/sections/Home/page";
 import LandingPage from "@/sections/LandingPage/page";
 import { useStytchUser } from "@stytch/nextjs";
-import { useEffect } from "react";
 
 export default function Home() {
   const { user, isInitialized } = useStytchUser();

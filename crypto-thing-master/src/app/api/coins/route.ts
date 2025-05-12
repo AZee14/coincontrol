@@ -43,12 +43,12 @@ export async function POST(req: Request) {
         coin_name: name,
         symbol,
         marketprice: price,
-        marketCap: market_cap,
+        marketcap: market_cap,
         last_updated,
         volume24h: percent_change_24h,
         volume1h: percent_change_1h,
         volume7d: percent_change_7d,
-        circulatingSupply: circulating_supply,
+        circulatingsupply: circulating_supply,
       };
     });
 

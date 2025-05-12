@@ -90,7 +90,6 @@ function Assets() {
         if (error) throw error;
         
         setAssets(data.results || [] as AssetData[]);
-        console.log(data.results)
       } catch (err) {
         console.error("Error fetching assets:", err);
         setError(err instanceof Error ? err.message : "An unknown error occurred");

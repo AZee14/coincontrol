@@ -29,6 +29,7 @@ const fetchCoins = async () => {
       }
     );
     const data = await response.json();
+    console.log(data)
     return data;
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -38,7 +39,7 @@ const fetchCoins = async () => {
 export const updateCoins = async () => {
   try {
     const coinsData = await fetchCoins();
-    // console.log(coinsData)
+    console.log(coinsData)
     const response = await fetch(`/api/coins`, {
       method: "POST",
       headers: {
