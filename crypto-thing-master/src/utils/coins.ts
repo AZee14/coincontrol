@@ -21,7 +21,7 @@ export const getAllCoins = async () => {
 const fetchCoins = async () => {
   try {
     const response = await fetch(
-      `http://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest`,
+      `${process.env.NEXT_PUBLIC_CORS_URL}https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest`,
       {
         headers: {
           "X-CMC_PRO_API_KEY": `${process.env.NEXT_PUBLIC_CMC_API_KEY}`,

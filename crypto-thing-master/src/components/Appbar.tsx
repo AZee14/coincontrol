@@ -19,6 +19,7 @@ import logo from "@/./app/icon.jpg";
 import Image from "next/image";
 import { COIN_POST_REQUEST_TIME } from "@/utils/constants";
 import { updateCoins } from "@/utils/coins";
+import { updateDexExchanges, updateDexPairs } from "@/utils/dex";
 
 const pages = ["Products", "Pricing", "Blog"];
 const settings = [
@@ -60,14 +61,18 @@ function AppBar() {
     setAnchorElUser(null);
   };
 
-  // // UNCOMMENT THIS
+  // UNCOMMENT THIS
   // React.useEffect(() => {
   //   // run immediately
-  //   updateCoins();
+  //   // updateCoins();
+  //   // updateDexExchanges()
+  //   // updateDexPairs()
 
   //   // then schedule
   //   const interval = setInterval(() => {
-  //     updateCoins();
+  //     // updateCoins();
+  //     // updateDexExchanges()
+  //   // updateDexPairs()
   //   }, COIN_POST_REQUEST_TIME);
 
   //   return () => clearInterval(interval);

@@ -15,6 +15,7 @@ import { makeStyles } from "@mui/styles";
 import { useStytchUser } from "@stytch/nextjs";
 import { createClient } from '@supabase/supabase-js';
 import { getAssets } from "@/utils/user";
+import { getDexExchanges } from "@/utils/dex";
 
 // Define the type for asset data
 interface AssetData {
