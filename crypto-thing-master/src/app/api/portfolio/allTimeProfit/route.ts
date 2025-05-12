@@ -63,7 +63,7 @@ export async function GET(req: Request) {
 
     const result = {
       name: `${users.first_name} ${users.last_name}`.trim(),
-      total_profit: profit,
+      total_profit: profit.toFixed(3),
       percentage_profit: percentage.toFixed(2),
     };
 

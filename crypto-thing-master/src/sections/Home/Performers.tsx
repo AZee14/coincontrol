@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Grid, Typography, Box, Container, Button } from "@mui/material";
+import React from "react";
+import { Grid, Typography, Box } from "@mui/material";
 import {
   ArrowDropDown,
   ArrowDropUp,
-  CurrencyBitcoin,
-  CurrencyFranc,
 } from "@mui/icons-material";
 
 interface Props {
@@ -74,7 +72,6 @@ function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
               fontWeight: "700",
             }}
           >
-            <CurrencyBitcoin />
             {bestPerformer?.coin_name}
           </Typography>
           <Typography
@@ -116,7 +113,6 @@ function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
               fontWeight: "700",
             }}
           >
-            <CurrencyFranc />
             {worstPerformer?.coin_name}
           </Typography>
           <Typography
