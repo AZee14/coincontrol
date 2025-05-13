@@ -262,29 +262,32 @@ const HomePage: React.FC = () => {
         <Grid container>
           <Grid item xs={6}>
             <Box textAlign="left">
-              <Typography
-                fontWeight={500}
-                sx={{ color: "#616e85", fontSize: "24px" }}
-              >
-                {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
-              </Typography>
-              <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
-                ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
-              </Typography>
-              <Typography
-                fontWeight={500}
-                sx={{
-                  color:
-                    todayCondition?.net_change_24h === undefined ||
-                    todayCondition?.net_change_24h < 0
-                      ? "#ea3943"
-                      : "#16c784",
-                  fontSize: "16px",
-                }}
-              >
-                {todayCondition?.net_change_24h?.toFixed(2)}${" "}
-                {todayCondition?.percentage_change_24h}% (24h)
-              </Typography>
+      <Typography
+        fontWeight={600}
+        sx={{ color: "#94a3b8", fontSize: "20px", mb: 1 }}
+      >
+        {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
+      </Typography>
+      <Typography
+        fontWeight={700}
+        sx={{ fontSize: "40px", color: "#0f172a", mb: 0.5 }}
+      >
+        ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
+      </Typography>
+      <Typography
+        fontWeight={500}
+        sx={{
+          color:
+            todayCondition?.net_change_24h === undefined ||
+            todayCondition?.net_change_24h < 0
+              ? "#ef4444"
+              : "#22c55e",
+          fontSize: "16px",
+        }}
+      >
+        {todayCondition?.net_change_24h?.toFixed(2)}$
+        {" "}({todayCondition?.percentage_change_24h}% 24h)
+      </Typography>
             </Box>
           </Grid>
           <Grid
@@ -296,14 +299,26 @@ const HomePage: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: "primary.main", borderRadius: "10px" }}
-              startIcon={<Add />}
-              onClick={handleOpenModal}
-            >
-              Add transaction
-            </Button>
+ <Button
+  variant="contained"
+  sx={{
+    background: "linear-gradient(to right, #6366f1, #3b82f6)",
+    borderRadius: "10px",
+    textTransform: "none",
+    fontWeight: 600,
+    px: 3,
+    py: 1.5,
+    boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
+    ":hover": {
+      background: "linear-gradient(to right, #4f46e5, #2563eb)",
+    },
+  }}
+  startIcon={<Add />}
+  onClick={handleOpenModal}
+>
+  Add Transaction
+</Button>
+
           </Grid>
         </Grid>
 
@@ -330,18 +345,19 @@ const HomePage: React.FC = () => {
 
         <Modal open={isModalOpen} onClose={handleCloseModal}>
           <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "27rem",
-              bgcolor: "background.paper",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: "15px",
-            }}
-          >
+  sx={{
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: { xs: "90%", sm: "27rem" },
+    bgcolor: "white",
+    boxShadow: 24,
+    p: 4,
+    borderRadius: "15px",
+    border: "1px solid #e5e7eb",
+  }}
+>
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h6" fontWeight={600}>
                 Add Transaction
@@ -427,28 +443,43 @@ const HomePage: React.FC = () => {
                 />
               </DemoItem>
 
-              <Box
-                sx={{ backgroundColor: "#eff2f5", borderRadius: "10px", p: 2 }}
-              >
-                <Typography sx={{ color: "#616e85", fontSize: "14px" }}>
-                  {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
-                </Typography>
-                <Typography sx={{ fontSize: "24px", fontWeight: 700 }}>
-                  ${(Number(quantity) * Number(pricePerCoin)).toFixed(4)}
-                </Typography>
-              </Box>
+<Box
+  sx={{
+    backgroundColor: "#f8fafc",
+    borderRadius: "12px",
+    p: 2,
+    mt: 1,
+    border: "1px solid #e2e8f0",
+  }}
+>
+  <Typography sx={{ color: "#64748b", fontSize: "14px" }}>
+    {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
+  </Typography>
+  <Typography sx={{ fontSize: "24px", fontWeight: 700, color: "#0f172a" }}>
+    ${(Number(quantity) * Number(pricePerCoin)).toFixed(4)}
+  </Typography>
+</Box>
 
-              <Button id="add-transaction-button"
-                variant="contained"
-                fullWidth
-                disabled={isAddTransactionDisabled}
-                onClick={handleAddTransaction}
-                sx={{ height: "3rem", borderRadius: "10px" }}
-              >
-                <Typography variant="subtitle1" fontWeight={500}>
-                  Add Transaction
-                </Typography>
-              </Button>
+
+        <Button
+  variant="contained"
+  fullWidth
+  disabled={isAddTransactionDisabled}
+  onClick={handleAddTransaction}
+  sx={{
+    height: "3rem",
+    borderRadius: "10px",
+    fontWeight: 600,
+    fontSize: "16px",
+    backgroundColor: "#3b82f6",
+    ":hover": {
+      backgroundColor: "#2563eb",
+    },
+  }}
+>
+  Add Transaction
+</Button>
+
             </Box>
           </Box>
         </Modal>
