@@ -1,32 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/utils/mongodb/mongodb';
 
-// Interfaces for type safety
-interface Coin {
-  coin_id: string;
-  price: number;
-  market_cap: number;
-  timestamp: string;
-  [key: string]: any;
-}
-
-interface PreviousData {
-  price: number;
-  timestamp: string;
-}
-
-interface ResultCoin extends Coin {
-  price_change_24h: number | null;
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
-  const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
-
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 10;
+
     const { db } = await connectToDatabase();
 
     // Step 1: Get the latest timestamp in the collection
@@ -38,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .toArray();
 
     if (latestEntry.length === 0) {
-      return res.status(404).json({ message: 'No data found' });
+      return NextResponse.json({ message: 'No data found' }, { status: 404 });
     }
 
     const latestTimestamp: string = latestEntry[0].timestamp;
@@ -49,11 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .find({ timestamp: latestTimestamp })
       .sort({ market_cap: -1 })
       .limit(limit)
-      .toArray() as unknown as Coin[];
+      .toArray();
 
     // Step 3: Calculate 24h price change for each coin
-    const result: ResultCoin[] = await Promise.all(
-      latestQuotes.map(async (coin: Coin): Promise<ResultCoin> => {
+    const result = await Promise.all(
+      latestQuotes.map(async (coin) => {
         const yesterday = new Date(new Date(latestTimestamp).getTime() - 24 * 60 * 60 * 1000);
 
         const previousData = await db
@@ -64,9 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
           .sort({ timestamp: -1 })
           .limit(1)
-          .toArray() as unknown as PreviousData[];
+          .toArray();
 
-        let price_change_24h: number | null = null;
+        let price_change_24h = null;
 
         if (previousData.length > 0) {
           const previousPrice = previousData[0].price;
@@ -80,9 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     );
 
-    return res.status(200).json(result);
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching top coins:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
