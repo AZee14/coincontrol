@@ -6,12 +6,11 @@ import {
   Typography,
   TableBody,
 } from "@mui/material";
-import React, { Key, useState } from "react";
+import React from "react";
 import { makeStyles } from "@mui/styles";
 import { useStytchUser } from "@stytch/nextjs";
 import { Delete } from "@mui/icons-material";
 import { deleteTransaction } from "@/utils/transactions";
-// Import the shared Transaction type
 import { Transaction } from "@/types";
 
 const useStyles = makeStyles({
@@ -33,19 +32,23 @@ const useStyles = makeStyles({
 
 interface TransactionsProps {
   data: Transaction[];
+  onTransactionDeleted?: () => void;
 }
 
-function Transactions({ data }: TransactionsProps) {
+const Transactions: React.FC<TransactionsProps> = ({
+  data,
+  onTransactionDeleted,
+}) => {
   const classes = useStyles();
   const { user, isInitialized } = useStytchUser();
-  const [transactions, setTransactions] = useState<Transaction[]>(data);
 
   const handleDelete = async (id: string) => {
-    await deleteTransaction(id);
-    // Filter out the deleted transaction from the display
-    setTransactions(
-      transactions.filter((transaction) => transaction.id !== id)
-    );
+    try {
+      await deleteTransaction(id);
+      onTransactionDeleted?.();
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   return (
@@ -81,8 +84,8 @@ function Transactions({ data }: TransactionsProps) {
       </TableHead>
       {isInitialized && user && (
         <TableBody>
-          {transactions.map((transaction) => (
-            <TableRow key={transaction.id as Key}>
+          {data.map((transaction) => (
+            <TableRow key={transaction.id}>
               <TableCell
                 className={classes.tc}
                 sx={{ textAlign: "left !important" }}
@@ -136,6 +139,6 @@ function Transactions({ data }: TransactionsProps) {
       )}
     </Table>
   );
-}
+};
 
 export default Transactions;

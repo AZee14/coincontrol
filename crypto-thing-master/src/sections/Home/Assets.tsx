@@ -254,7 +254,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography sx={{ fontSize: "14px", color: "black" }}>
-                    ${asset.holding_value}
+                    ${asset.holding_value?.toFixed(3)}
                   </Typography>
                   <Typography sx={{ fontSize: "12px" }} color="secondary">
                     {asset.holding_amount} {asset.shorthand}

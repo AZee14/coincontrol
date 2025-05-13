@@ -22,6 +22,20 @@ export async function GET(req: Request) {
   }
 
   try {
+    // Get the portfolio_id for the user
+    const { data: portfolioData, error: portfolioError } = await supabase
+      .from("current_portfolio")
+      .select("portfolio_id")
+      .eq("user_id", userId)
+      .single();
+
+    if (portfolioError || !portfolioData) {
+      throw new Error("Portfolio not found for this user");
+    }
+
+    const portfolioId = portfolioData.portfolio_id;
+
+    // Fetch transactions for the specific portfolio_id
     const { data, error } = await supabase
       .from("transaction_history")
       .select(
@@ -33,10 +47,10 @@ export async function GET(req: Request) {
           amount,
           value,
           coin_id,
-          current_portfolio(user_id)
+          contract_address
         `
       )
-      .eq("current_portfolio.user_id", userId)
+      .eq("portfolio_id", portfolioId)
       .order("transaction_id", { ascending: false });
 
     if (error) throw error;
