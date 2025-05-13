@@ -18,7 +18,7 @@ import { getAssets } from "@/utils/user";
 import { getDexExchanges } from "@/utils/dex";
 
 // Define the type for asset data
-interface AssetData {
+export interface AssetData {
   coin_id?: string | number;
   name: string;
   shorthand: string;
@@ -41,6 +41,9 @@ interface AssetData {
   profit_loss_percentage?: string | number;
   profitLossPercentage?: string | number;
   user_id?: string;
+}
+interface AssetsProps {
+   onBuySellClick: (asset: AssetData) => void;
 }
 
 const useStyles = makeStyles({
@@ -70,13 +73,13 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey, { db: { schema: 'cryptothing' } });
 
-
-function Assets() {
+function Assets({ onBuySellClick }: AssetsProps) {
   const classes = useStyles();
   const { user, isInitialized } = useStytchUser();
   const [assets, setAssets] = useState<AssetData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -287,9 +290,13 @@ function Assets() {
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
-                  <Typography sx={{ fontWeight: "600", cursor: "pointer", color: "#1976d2" }}>
-                    Buy/Sell
-                  </Typography>
+         <Typography
+             sx={{ fontWeight: "600", cursor: "pointer", color: "#1976d2" }}
+                  onClick={() => onBuySellClick(asset)}
+                >
+                  Buy/Sell
+                </Typography>
+
                 </TableCell>
               </TableRow>
             ))

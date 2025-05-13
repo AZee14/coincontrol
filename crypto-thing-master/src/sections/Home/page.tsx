@@ -31,6 +31,7 @@ import { getTransactions, getUserDetails } from "@/utils/user";
 import { useStytchUser } from "@stytch/nextjs";
 import { getAllCoins } from "@/utils/coins";
 import { PortfolioTransaction, Coin, UserDetails } from "@/types";
+import type { AssetData } from "./Assets";
 import {
   getAllTimeProfit,
   getBestPerformer,
@@ -55,7 +56,7 @@ const HomePage: React.FC = () => {
   const [itemTypeTab, setItemTypeTab] = useState(0); // 0 = Coin, 1 = DEX Pair
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState(0);
-  const [selectedCoin, setSelectedCoin] = useState("");
+  const [selectedCoin, setSelectedCoin] = useState<string>(""); 
   const [quantity, setQuantity] = useState("");
   const [pricePerCoin, setPricePerCoin] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
@@ -89,19 +90,37 @@ const HomePage: React.FC = () => {
     setSelectedTab(newValue);
   const handleModalTabChange = (e: React.SyntheticEvent, newValue: number) =>
     setModalTab(newValue);
+   const handleAssetBuySell = (asset: AssetData) => {
++    // 1) select the "Coin" tab
+     setItemTypeTab(0);
+
++    // 2) force the modal into "Buy" or "Sell" if you like:
+     setModalTab(0);  // 0 = Buy
+
++    // 3) prefill the dropdown and inputs:
+     setSelectedCoin(String(asset.coin_id)); // this drives your <TextField select value=…
+     setPricePerCoin(String(asset.current_price ?? 0));
+     setQuantity(String(asset.holding_amount ?? ""));
+
++    // 4) reset date/time if you want
+     setDateTime(new Date());
+
++    // 5) open the modal
+     setIsModalOpen(true);
+   };
 
   const handleCoinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.value;
     if (itemTypeTab === 0) {
       const coinObj = coins.find((c) => c.coin_id === selected);
       if (coinObj) {
-        setSelectedCoin(selected);
+        setSelectedCoin(itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected);
         setPricePerCoin(coinObj.marketprice);
       }
     } else {
       const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
       if (dexPairObj) {
-        setSelectedCoin(selected);
+        setSelectedCoin(String(parseInt(selected, 10) || ""));
         setPricePerCoin(dexPairObj.price);
       }
     }
@@ -130,8 +149,8 @@ const HomePage: React.FC = () => {
     try {
       const transactionData: PortfolioTransaction = {
         type: modalTab === 0 ? "Buy" : "Sell",
-        coin: itemTypeTab === 0 ? selectedCoin : null,
-        contract_address: itemTypeTab === 1 ? selectedCoin : null,
+        coin: itemTypeTab === 0 ? (selectedCoin !== null ? String(selectedCoin) : null) : null,
+        contract_address: itemTypeTab === 1 ? (selectedCoin !== null ? String(selectedCoin) : null) : null,
         quantity: parseFloat(quantity),
         pricePerCoin: parseFloat(pricePerCoin),
         dateTime: dateTime.toISOString(),
@@ -237,9 +256,9 @@ const HomePage: React.FC = () => {
       })
     : [];
 
-  return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container>
+   return (
+     <LocalizationProvider dateAdapter={AdapterDayjs}>
+       <Container>
         <Grid container>
           <Grid item xs={6}>
             <Box textAlign="left">
@@ -295,17 +314,19 @@ const HomePage: React.FC = () => {
         />
         <Divider sx={{ width: "100%", mt: 2 }} />
 
-        <Tabs value={selectedTab} onChange={handleTabChange}>
-          {tabs.map((tab, i) => (
-            <Tab key={i} label={tab} />
-          ))}
-        </Tabs>
+   <Tabs value={selectedTab} onChange={handleTabChange}>
+           {tabs.map((tab, i) => (
+             <Tab key={i} label={tab} />
+           ))}
+         </Tabs>
 
-        {selectedTab === 0 ? (
-          <Assets />
-        ) : (
-          <Transactions data={formattedTransactions} />
-        )}
+      {selectedTab === 0
+         ? 
+            <Assets 
+              // pass your new handler into Assets
+              onBuySellClick={handleAssetBuySell} 
+            />
+          : <Transactions data={formattedTransactions} />}
 
         <Modal open={isModalOpen} onClose={handleCloseModal}>
           <Box
@@ -359,7 +380,7 @@ const HomePage: React.FC = () => {
               >
                 {itemTypeTab === 0
                   ? coins.map((c) => (
-                      <MenuItem key={c.coin_id} value={c.coin_id}>
+                      <MenuItem key={c.coin_id} value={String(c.coin_id)}>
                         {`${c.coin_name} (${c.symbol})`}
                       </MenuItem>
                     ))
@@ -417,7 +438,7 @@ const HomePage: React.FC = () => {
                 </Typography>
               </Box>
 
-              <Button
+              <Button id="add-transaction-button"
                 variant="contained"
                 fullWidth
                 disabled={isAddTransactionDisabled}

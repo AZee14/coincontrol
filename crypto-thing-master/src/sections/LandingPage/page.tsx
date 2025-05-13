@@ -745,7 +745,9 @@ export default function LandingPage() {
           <Box sx={{ mt: 3, minHeight: '400px' }}>
             {selectedTab === 0 && (
               <Fade in={selectedTab === 0} timeout={500}>
-                <div><Assets /></div>
+                <div>
+                  <Assets onBuySellClick={(asset) => console.log('Buy/Sell clicked for:', asset)} />
+                </div>
               </Fade>
             )}
             
