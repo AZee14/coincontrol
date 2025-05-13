@@ -18,146 +18,203 @@ export interface CoinDataPoint {
   volume_24h: number;
 }
 
+// Supported coins list
+const AVAILABLE_COINS = [
+  { slug: 'bitcoin',     symbol: 'BTC',  name: 'Bitcoin'      },
+  { slug: 'ethereum',    symbol: 'ETH',  name: 'Ethereum'     },
+  { slug: 'dogecoin',    symbol: 'DOGE', name: 'Dogecoin'     },
+  { slug: 'cardano',     symbol: 'ADA',  name: 'Cardano'      },
+  { slug: 'binancecoin', symbol: 'BNB',  name: 'Binance Coin' }
+];
+
 interface CoinChartProps {
-  coinId: string | number;
+  coinId: number;
   coinSymbol: string;
-  timeFrame?: '24h' | '7d' | '30d' | '90d' | '1y' | 'all';
-  showVolume?: boolean;
-  showMarketCap?: boolean;
-  height?: number;
+  timeFrame: '24h' | '7d' | '30d' | '90d' | '1y' | 'all';
+  showMarketCap: boolean;
+  showVolume: boolean;
+  height: number;
 }
 
 const CoinChart: React.FC<CoinChartProps> = ({
-  coinId,
-  coinSymbol,
   timeFrame = '7d',
   showVolume = false,
   showMarketCap = false,
   height = 400
 }) => {
+  const [selectedCoin, setSelectedCoin] = useState(AVAILABLE_COINS[2]); // default DOGE
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState(timeFrame);
   const [chartData, setChartData] = useState<CoinDataPoint[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // sync prop → state
   useEffect(() => {
-    const fetchCoinData = async () => {
+    setSelectedTimeFrame(timeFrame);
+  }, [timeFrame]);
+
+  // fetch when coin or timeframe changes
+  useEffect(() => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        console.log(`Fetching /api/coins/${coinId}/history?timeFrame=${timeFrame}&interval=daily`);
-        const response = await fetch(
-          `/api/coins/${coinId}/history?timeFrame=${timeFrame}&interval=daily`
-        );
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Status ${response.status}: ${errText}`);
-        }
-        const data = await response.json();
+        const url = `/api/coins/${selectedCoin.slug}/history`
+          + `?timeFrame=${selectedTimeFrame}&interval=daily`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data: any[] = await resp.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-          setChartData([]);
-          setError('No historical data available for this time frame.');
-        } else {
-          const formattedData = data.map((item: any) => ({
-            timestamp: new Date(item.timestamp).toLocaleDateString(),
-            price: item.price,
-            market_cap: item.market_cap,
-            volume_24h: item.volume_24h
-          }));
-          setChartData(formattedData);
-          setError(null);
+        // if no data for this frame, auto-switch to ALL once
+        if (data.length === 0 && selectedTimeFrame !== 'all') {
+          setSelectedTimeFrame('all');
+          return;
         }
+
+        const formatted = data.map(item => ({
+          timestamp: new Date(item.timestamp).toLocaleDateString(),
+          price:     item.price,
+          market_cap:item.market_cap,
+          volume_24h:item.volume_24h
+        }));
+
+        setChartData(formatted);
+        setError(null);
       } catch (err: any) {
-        console.error('Error fetching coin data:', err);
+        console.error(err);
         setError(err.message || 'Failed to load chart data');
         setChartData([]);
       } finally {
         setIsLoading(false);
       }
     };
+    fetchData();
+  }, [selectedCoin, selectedTimeFrame]);
 
-    fetchCoinData();
-  }, [coinId, timeFrame]);
-
-  const formatCurrency = (value: number) =>
+  // currency formatter
+  const fmtCurr = (v: number) =>
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+      minimumFractionDigits: 2
+    }).format(v);
 
-  const formatLargeNumber = (value: number) => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
-    return formatCurrency(value);
+  // large number formatter
+  const fmtLarge = (v: number) => {
+    if (v >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
+    if (v >= 1e9)  return `$${(v / 1e9).toFixed(2)}B`;
+    if (v >= 1e6)  return `$${(v / 1e6).toFixed(2)}M`;
+    return fmtCurr(v);
   };
+
+  // coerce any → number
+  const toNumber = (value: any): number =>
+    typeof value === 'number' ? value : parseFloat(value);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-700">
-        Loading chart data...
+      <div className="h-64 flex items-center justify-center text-gray-700">
+        Loading chart…
       </div>
     );
   }
-
   if (error) {
     return (
-      <div className="text-red-600 text-center font-medium">
+      <div className="text-red-600 text-center">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md p-4 text-gray-900">
-      <h2 className="text-xl font-bold mb-2 text-gray-900">
-        {coinSymbol.toUpperCase()} Price Chart ({timeFrame.toUpperCase()})
-      </h2>
+    <div className="w-full bg-white p-4 rounded-lg shadow text-gray-900">
+      {/* Coin selector */}
+      <div className="flex items-center space-x-2 mb-4">
+        <label htmlFor="coin-select" className="font-medium">Coin:</label>
+        <select
+          id="coin-select"
+          value={selectedCoin.slug}
+          onChange={e => {
+            const sel = AVAILABLE_COINS.find(c => c.slug === e.target.value)!;
+            setSelectedCoin(sel);
+          }}
+          className="border rounded px-2 py-1"
+        >
+          {AVAILABLE_COINS.map(c => (
+            <option key={c.slug} value={c.slug}>
+              {c.name} ({c.symbol})
+            </option>
+          ))}
+        </select>
+      </div>
 
+      {/* Header & timeframe */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">
+          {selectedCoin.name} ({selectedCoin.symbol}) Price Chart
+        </h2>
+        <div className="flex space-x-2">
+          {(['24h','7d','30d','90d','1y','all'] as const).map(tf => (
+            <button
+              key={tf}
+              className={`px-3 py-1 rounded ${
+                selectedTimeFrame === tf
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-800'
+              }`}
+              onClick={() => setSelectedTimeFrame(tf)}
+            >
+              {tf.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart or fallback */}
       {chartData.length === 0 ? (
-        <div className="text-center text-gray-600">
-          No data available for this time frame.
+        <div className="text-center text-gray-500">
+          No historical data available for “{selectedTimeFrame}.”
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={height}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+          <LineChart data={chartData} margin={{ top:5, right:30, left:20, bottom:5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
             <XAxis
               dataKey="timestamp"
               tick={{ fill: '#1F2937', fontSize: 12 }}
             />
             <YAxis
               yAxisId="price"
-              domain={['auto', 'auto']}
-              tickFormatter={formatCurrency}
+              tickFormatter={val => fmtCurr(toNumber(val))}
               tick={{ fill: '#1F2937', fontSize: 12 }}
             />
             {(showVolume || showMarketCap) && (
               <YAxis
                 yAxisId="secondary"
                 orientation="right"
-                tickFormatter={formatLargeNumber}
+                tickFormatter={val => fmtLarge(toNumber(val))}
                 tick={{ fill: '#1F2937', fontSize: 12 }}
               />
             )}
             <Tooltip
-              formatter={(value: number, name: string) =>
-                name === 'Price' ? formatCurrency(value) : formatLargeNumber(value)
-              }
-              labelFormatter={(label) => `Date: ${label}`}
+              formatter={(value: any, name: any) => {
+                const num = toNumber(value);
+                const formatted = name === 'Price'
+                  ? fmtCurr(num)
+                  : fmtLarge(num);
+                return [formatted, name];
+              }}
+              labelFormatter={label => `Date: ${label}`}
               contentStyle={{ backgroundColor: '#fff', borderColor: '#ccc' }}
               itemStyle={{ color: '#1F2937' }}
-              labelStyle={{ color: '#1F2937' }}
+              labelStyle={{ color: '#111827' }}
             />
-            <Legend wrapperStyle={{ color: '#1F2937', fontSize: 12 }} />
-
+            <Legend />
             <Line
               yAxisId="price"
               type="monotone"
               dataKey="price"
               name="Price"
-              stroke="#2563eb"
+              stroke="#2563EB"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
@@ -168,7 +225,7 @@ const CoinChart: React.FC<CoinChartProps> = ({
                 type="monotone"
                 dataKey="market_cap"
                 name="Market Cap"
-                stroke="#10b981"
+                stroke="#10B981"
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 6 }}
@@ -180,7 +237,7 @@ const CoinChart: React.FC<CoinChartProps> = ({
                 type="monotone"
                 dataKey="volume_24h"
                 name="Volume (24h)"
-                stroke="#6366f1"
+                stroke="#6366F1"
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 6 }}

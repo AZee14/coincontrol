@@ -85,6 +85,8 @@ export default function LandingPage() {
               coinSymbol={featuredCoin.symbol}
               timeFrame="7d"
               height={400}
+              showMarketCap={true}
+              showVolume={true}
             />
             
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
