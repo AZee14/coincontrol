@@ -10,14 +10,27 @@ export async function POST(req: Request) {
   }
 
   const requestData = await req.json();
-  const { type, coin, quantity, pricePerCoin, dateTime, total } = requestData;
+  const {
+    type,
+    coin,
+    contract_address,
+    quantity,
+    pricePerCoin,
+    dateTime,
+    total,
+  } = requestData;
 
-  if (!coin || !quantity || !pricePerCoin || !dateTime) {
-    return NextResponse.json(
-      { message: "Missing required fields" },
-      { status: 400 }
-    );
-  }
+  // if (
+  //   (!coin_id && !contract_address) ||
+  //   !quantity ||
+  //   !pricePerCoin ||
+  //   !dateTime
+  // ) {
+  //   return NextResponse.json(
+  //     { message: "Missing required fields" },
+  //     { status: 400 }
+  //   );
+  // }
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,8 +71,10 @@ export async function POST(req: Request) {
       .replace("T", " ")
       .replace("Z", "");
 
-    const amount = type === "Buy" ? quantity : -quantity;
-    const value = type === "Buy" ? total : -total;
+    const amount = quantity;
+    const value = total;
+    // const amount = type === "Buy" ? quantity : -quantity;
+    // const value = type === "Buy" ? total : -total;
 
     // Insert into transaction_history
     const { data: transactionResult, error: insertError } = await supabase
@@ -67,7 +82,8 @@ export async function POST(req: Request) {
       .insert([
         {
           transaction_type: type,
-          coin_id: coin,
+          coin_id: coin || null, // Insert coin_id if present
+          contract_address: contract_address || null, // Insert contract_address if present
           portfolio_id: portfolioId,
           date: date,
           amount: amount,

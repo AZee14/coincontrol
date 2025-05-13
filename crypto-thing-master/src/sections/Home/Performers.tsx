@@ -1,9 +1,6 @@
 import React from "react";
 import { Grid, Typography, Box } from "@mui/material";
-import {
-  ArrowDropDown,
-  ArrowDropUp,
-} from "@mui/icons-material";
+import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 
 interface Props {
   allTimeProfit: AllTimeProfits | undefined;
@@ -11,8 +8,7 @@ interface Props {
   worstPerformer: WorstPerformer | undefined;
 }
 
-function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
-
+function Performers({ allTimeProfit, bestPerformer, worstPerformer }: Props) {
   return (
     <Grid container sx={{ marginTop: 3, gap: 2 }}>
       {/* First Box */}
@@ -38,13 +34,22 @@ function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
               textJustify: "center",
               display: "inline-flex",
               alignItems: "center",
-              color: "#ea3943",
+              color:
+                allTimeProfit?.total_profit == undefined ||
+                allTimeProfit?.total_profit <= 0
+                  ? "#ea3943"
+                  : "#16c784",
               fontSize: "14px",
               fontWeight: "500",
             }}
           >
             {allTimeProfit?.percentage_profit}%
-            <ArrowDropDown />
+            {allTimeProfit?.total_profit == undefined ||
+            allTimeProfit?.total_profit <= 0 ? (
+              <ArrowDropDown />
+            ) : (
+              <ArrowDropUp />
+            )}
           </Typography>
         </Box>
       </Grid>
@@ -79,13 +84,22 @@ function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
               textJustify: "center",
               display: "inline-flex",
               alignItems: "center",
-              color: "#16c784",
+              color:
+                bestPerformer?.total_profit == undefined ||
+                bestPerformer?.total_profit <= 0
+                  ? "#ea3943"
+                  : "#16c784",
               fontSize: "14px",
               fontWeight: "500",
             }}
           >
             ${bestPerformer?.total_profit} ({bestPerformer?.percentage_profit}%)
-            <ArrowDropUp />
+            {bestPerformer?.total_profit == undefined ||
+            bestPerformer?.total_profit <= 0 ? (
+              <ArrowDropDown />
+            ) : (
+              <ArrowDropUp />
+            )}
           </Typography>
         </Box>
       </Grid>
@@ -120,13 +134,22 @@ function Performers({allTimeProfit,bestPerformer,worstPerformer}:Props) {
               textJustify: "center",
               display: "inline-flex",
               alignItems: "center",
-              color: "#ea3943",
+              color:
+                worstPerformer?.total_loss == undefined ||
+                worstPerformer?.total_loss <= 0
+                  ? "#ea3943"
+                  : "#16c784",
               fontSize: "14px",
               fontWeight: "500",
             }}
           >
-            -${worstPerformer?.total_loss} ({worstPerformer?.percentage_loss}%)
-            <ArrowDropDown />
+            ${worstPerformer?.total_loss?.toString().replace(/^-\s*/, "")} ({worstPerformer?.percentage_loss}%)
+            {worstPerformer?.total_loss == undefined ||
+            worstPerformer?.total_loss <= 0 ? (
+              <ArrowDropDown />
+            ) : (
+              <ArrowDropUp />
+            )}
           </Typography>
         </Box>
       </Grid>

@@ -34,7 +34,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/config/db.js"
-  ],
+, "src/app/api/singleCoin/coinDetails"  ],
   "exclude": [
     "node_modules"
   ]

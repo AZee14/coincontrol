@@ -23,7 +23,8 @@ export interface Transaction {
   export interface PortfolioTransaction {
     id?: string | number;
     type: "Buy" | "Sell";
-    coin: string;
+    coin: string | null;
+    contract_address: string | null;
     quantity: number;
     pricePerCoin: number;
     dateTime: string;

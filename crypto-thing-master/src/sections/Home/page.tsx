@@ -30,31 +30,29 @@ import { sendTransactionData } from "@/utils/transactions";
 import { getTransactions, getUserDetails } from "@/utils/user";
 import { useStytchUser } from "@stytch/nextjs";
 import { getAllCoins } from "@/utils/coins";
-import {
-  Transaction,
-  PortfolioTransaction,
-  Coin,
-  CoinMetadata,
-  UserDetails,
-} from "@/types";
+import { PortfolioTransaction, Coin, UserDetails } from "@/types";
 import {
   getAllTimeProfit,
   getBestPerformer,
   getTodayCondition,
   getWorstPerformer,
 } from "@/utils/portfolio";
+import { getDexPairs } from "@/utils/dex";
 
 const HomePage: React.FC = () => {
   const { user, isInitialized } = useStytchUser();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [coins, setCoins] = useState<Coin[]>([]);
+  const [dexPairs, setDexPairs] = useState<DexPair[]>([]);
   const [loading, setLoading] = useState({
     coins: true,
     transactions: true,
     userDetails: true,
+    dexPairs: true,
   });
 
+  const [itemTypeTab, setItemTypeTab] = useState(0); // 0 = Coin, 1 = DEX Pair
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState("");
@@ -94,10 +92,18 @@ const HomePage: React.FC = () => {
 
   const handleCoinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.value;
-    const coinObj = coins.find((c) => c.coin_id === selected);
-    if (coinObj) {
-      setSelectedCoin(selected);
-      setPricePerCoin(coinObj.marketprice);
+    if (itemTypeTab === 0) {
+      const coinObj = coins.find((c) => c.coin_id === selected);
+      if (coinObj) {
+        setSelectedCoin(selected);
+        setPricePerCoin(coinObj.marketprice);
+      }
+    } else {
+      const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
+      if (dexPairObj) {
+        setSelectedCoin(selected);
+        setPricePerCoin(dexPairObj.price);
+      }
     }
   };
 
@@ -124,7 +130,8 @@ const HomePage: React.FC = () => {
     try {
       const transactionData: PortfolioTransaction = {
         type: modalTab === 0 ? "Buy" : "Sell",
-        coin: selectedCoin,
+        coin: itemTypeTab === 0 ? selectedCoin : null,
+        contract_address: itemTypeTab === 1 ? selectedCoin : null,
         quantity: parseFloat(quantity),
         pricePerCoin: parseFloat(pricePerCoin),
         dateTime: dateTime.toISOString(),
@@ -198,6 +205,22 @@ const HomePage: React.FC = () => {
     fetchCoins();
   }, []);
 
+  useEffect(() => {
+    const fetchDex = async () => {
+      try {
+        setLoading((prev) => ({ ...prev, dexPairs: true }));
+        const data = await getDexPairs();
+        setDexPairs(data || []);
+      } catch (err) {
+        console.error("Error fetching dex pairs:", err);
+        setDexPairs([]);
+      } finally {
+        setLoading((prev) => ({ ...prev, dexPairs: false }));
+      }
+    };
+    fetchDex();
+  }, []);
+
   const formattedTransactions: any[] = Array.isArray(transactions)
     ? transactions.map((tx) => {
         const coin = coins.find((c) => c.coin_id === tx.coin_id);
@@ -240,7 +263,7 @@ const HomePage: React.FC = () => {
                   fontSize: "16px",
                 }}
               >
-                {todayCondition?.net_change_24h}${" "}
+                {todayCondition?.net_change_24h?.toFixed(2)}${" "}
                 {todayCondition?.percentage_change_24h}% (24h)
               </Typography>
             </Box>
@@ -317,29 +340,37 @@ const HomePage: React.FC = () => {
             </Tabs>
 
             <Box mt={2} display="flex" flexDirection="column" gap={2}>
+              <Tabs
+                value={itemTypeTab}
+                onChange={(_, v) => setItemTypeTab(v)}
+                variant="fullWidth"
+              >
+                <Tab label="Coin" />
+                <Tab label="DEX Pair" />
+              </Tabs>
               <TextField
                 select
-                label="Select Coin"
+                label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
                 value={selectedCoin}
                 onChange={handleCoinChange}
                 fullWidth
                 sx={textFieldSx}
                 InputProps={textFieldInputProps}
-                disabled={loading.coins}
               >
-                {loading.coins ? (
-                  <MenuItem disabled>
-                    <CircularProgress size={20} />
-                  </MenuItem>
-                ) : coins.length > 0 ? (
-                  coins.map((coin) => (
-                    <MenuItem key={coin.coin_id} value={coin.coin_id}>
-                      {`${coin.coin_name} (${coin.symbol})`}
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>No coins available</MenuItem>
-                )}
+                {itemTypeTab === 0
+                  ? coins.map((c) => (
+                      <MenuItem key={c.coin_id} value={c.coin_id}>
+                        {`${c.coin_name} (${c.symbol})`}
+                      </MenuItem>
+                    ))
+                  : dexPairs.map((p) => (
+                      <MenuItem
+                        key={p.contract_address}
+                        value={p.contract_address}
+                      >
+                        {p.name}
+                      </MenuItem>
+                    ))}
               </TextField>
 
               <Grid container spacing={2}>

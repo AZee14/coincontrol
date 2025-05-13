@@ -189,87 +189,87 @@ function Assets() {
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography sx={{ fontSize: "14px", color: "black" }}>
-                    ${asset.current_price || asset.currentPrice}
+                    ${asset.current_price}
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography
                     sx={{
                       color:
-                        Number(asset.hourly_change || asset.hourlyChange) > 0 ? "#16c784" : "#ea3943",
+                        Number(asset.hourly_change) > 0 ? "#16c784" : "#ea3943",
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: 'flex-end'
                     }}
                   >
-                    {Number(asset.hourly_change || asset.hourlyChange) > 0 ? (
+                    {Number(asset.hourly_change) > 0 ? (
                       <ArrowDropUp />
                     ) : (
                       <ArrowDropDown />
                     )}
-                    {asset.hourly_change || asset.hourlyChange}%
+                    {asset.hourly_change}%
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography
                     sx={{
                       color:
-                        Number(asset.daily_change || asset.dailyChange) > 0 ? "#16c784" : "#ea3943",
+                        Number(asset.daily_change) > 0 ? "#16c784" : "#ea3943",
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: 'flex-end'
                     }}
                   >
-                    {Number(asset.daily_change || asset.dailyChange) > 0 ? (
+                    {Number(asset.daily_change) > 0 ? (
                       <ArrowDropUp />
                     ) : (
                       <ArrowDropDown />
                     )}
-                    {asset.daily_change || asset.dailyChange}%
+                    {asset.daily_change}%
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography
                     sx={{
                       color:
-                        Number(asset.weekly_change || asset.weeklyChange) > 0 ? "#16c784" : "#ea3943",
+                        Number(asset.weekly_change) > 0 ? "#16c784" : "#ea3943",
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: 'flex-end'
                     }}
                   >
-                    {Number(asset.weekly_change || asset.weeklyChange) > 0 ? (
+                    {Number(asset.weekly_change) > 0 ? (
                       <ArrowDropUp />
                     ) : (
                       <ArrowDropDown />
                     )}
-                    {asset.weekly_change || asset.weeklyChange}%
+                    {asset.weekly_change}%
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography sx={{ fontSize: "14px", color: "black" }}>
-                    ${asset.holding_value || asset.holdingValue}
+                    ${asset.holding_value}
                   </Typography>
                   <Typography sx={{ fontSize: "12px" }} color="secondary">
-                    {asset.holding_amount || asset.holdingAmount} {asset.shorthand}
+                    {asset.holding_amount} {asset.shorthand}
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography sx={{ fontSize: "14px" }}>
-                    ${asset.avg_buy_price || asset.avgBuyPrice}
+                    ${asset.avg_buy_price}
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
                   <Typography sx={{ fontSize: "14px" }}>
-                    ${asset.profit_loss_amount || asset.profitLossAmount}
+                    ${asset.profit_loss_amount}
                   </Typography>
                   <Typography
                     sx={{
                       color:
-                        Number(asset.profit_loss_percentage || asset.profitLossPercentage) > 0
+                        Number(asset.profit_loss_percentage) > 0
                           ? "#16c784"
                           : "#ea3943",
                       display: "flex",
@@ -278,12 +278,12 @@ function Assets() {
                       justifyContent: 'flex-end'
                     }}
                   >
-                    {Number(asset.profit_loss_percentage || asset.profitLossPercentage) > 0 ? (
+                    {Number(asset.profit_loss_percentage) > 0 ? (
                       <ArrowDropUp />
                     ) : (
                       <ArrowDropDown />
                     )}
-                    {asset.profit_loss_percentage || asset.profitLossPercentage}%
+                    {asset.profit_loss_percentage || 0}%
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>

@@ -1,7 +1,8 @@
 export const sendTransactionData = async (
   transactionData: {
     type: "Buy" | "Sell";
-    coin: string;
+    coin: string | null;
+    contract_address: string | null;
     quantity: number;
     pricePerCoin: number;
     dateTime: string;
@@ -29,16 +30,17 @@ export const sendTransactionData = async (
   }
 };
 
-export const deleteTransaction = async (
-  transactionId: string
-) => {
+export const deleteTransaction = async (transactionId: string) => {
   try {
-    const response = await fetch(`/api/transactions/delete?transactionId=${transactionId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `/api/transactions/delete?transactionId=${transactionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);

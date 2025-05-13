@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// 1) Create Supabase client with 'cryptothing' as the default schema
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -9,7 +8,6 @@ const supabase = createClient(
 );
 
 export async function GET(req: Request) {
-  // Define AssetData interface locally for TS
   interface AssetData {
     name: string;
     shorthand: string;
@@ -25,118 +23,141 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 2) Pull userId from query params
     const url = new URL(req.url);
     const userId = url.searchParams.get("userId");
     if (!userId) {
-      return NextResponse.json({ error: "userId parameter is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "userId parameter is required" },
+        { status: 400 }
+      );
     }
 
-    // 3) Fetch this user’s portfolio ID
-    const { data: portfolioData, error: portfolioError } = await supabase
+    const { data: p, error: pErr } = await supabase
       .from("current_portfolio")
       .select("portfolio_id")
       .eq("user_id", userId)
       .single();
-    if (portfolioError || !portfolioData) throw portfolioError || new Error("Portfolio not found");
-    const portfolioId = portfolioData.portfolio_id;
+    if (pErr || !p) throw pErr || new Error("Portfolio not found");
+    const portfolioId = p.portfolio_id;
 
-    // 4) Fetch assets for that portfolio (amount, value, and profit_loss)
-    const { data: assetRows, error: assetError } = await supabase
+    const { data: assetRows, error: aErr } = await supabase
       .from("assets")
-      .select("coin_id, amount, value, avgbuyprice, profit_loss")
-      .eq("portfolio_id", portfolioId)
-      .order("coin_id", { ascending: true });
-    if (assetError) throw assetError;
-    const coinIds = assetRows?.map(a => a.coin_id) || [];
+      .select("coin_id, contract_address, amount, value")
+      .eq("portfolio_id", portfolioId);
+    if (aErr) throw aErr;
 
-    // 5) Fetch all transactions for these coins to compute oldest date per coin
-    const { data: allTx, error: txAllError } = await supabase
-      .from("transaction_history")
-      .select("coin_id, date")
-      .eq("portfolio_id", portfolioId)
-      .in("coin_id", coinIds);
-    if (txAllError) throw txAllError;
-    const ageMap = new Map<any, number>();
-    // initialize with large value
-    coinIds.forEach(id => ageMap.set(id, Infinity));
-    allTx?.forEach(tx => {
-      const txDate = new Date(tx.date).getTime();
-      const prev = ageMap.get(tx.coin_id) ?? Infinity;
-      if (txDate && txDate < prev) ageMap.set(tx.coin_id, txDate);
+    const coinAssets = assetRows.filter((r) => r.coin_id);
+    const dexAssets = assetRows.filter((r) => r.contract_address);
+
+    const coinIds = [...new Set(coinAssets.map((a) => a.coin_id))];
+    const dexAddrs = [...new Set(dexAssets.map((a) => a.contract_address))];
+
+    let buyTxs: any[] = [];
+
+    if (coinIds.length > 0) {
+      const { data: coinBuys = [], error: coinBuyErr } = await supabase
+        .from("transaction_history")
+        .select("coin_id, price_per_coin, amount")
+        .eq("transaction_type", "Buy")
+        .in("coin_id", coinIds);
+      if (coinBuyErr) throw coinBuyErr;
+      buyTxs = buyTxs.concat(coinBuys);
+    }
+
+    if (dexAddrs.length > 0) {
+      const { data: dexBuys = [], error: dexBuyErr } = await supabase
+        .from("transaction_history")
+        .select("contract_address, price_per_coin, amount")
+        .eq("transaction_type", "Buy")
+        .in("contract_address", dexAddrs);
+      if (dexBuyErr) throw dexBuyErr;
+      buyTxs = buyTxs.concat(dexBuys);
+    }
+
+    const avgBuyMap = new Map<string, number>();
+    const allKeys = [...coinIds, ...dexAddrs];
+
+    allKeys.forEach((key) => {
+      const relevant = buyTxs.filter(
+        (tx) => tx.coin_id === key || tx.contract_address === key
+      );
+      if (relevant.length) {
+        const totalCost = relevant.reduce(
+          (sum, tx) => sum + tx.price_per_coin * tx.amount,
+          0
+        );
+        const totalAmt = relevant.reduce((sum, tx) => sum + tx.amount, 0);
+        avgBuyMap.set(key, totalCost / totalAmt);
+      } else {
+        avgBuyMap.set(key, 0);
+      }
     });
-    // convert to hours since
-    ageMap.forEach((ts, coin) => {
-      const ms = ts === Infinity ? 0 : Date.now() - ts;
-      ageMap.set(coin, ms / (1000 * 60 * 60));
-    });
 
-    // 6) Fetch coin metadata
-    const { data: coinsData, error: coinsError } = await supabase
-      .from("coins")
-      .select("coin_id, coin_name, symbol, marketprice, volume1h, volume24h, volume7d")
-      .in("coin_id", coinIds);
-    if (coinsError) throw coinsError;
+    // Further processing for metadata, assembling final response, etc.
 
-    // 7) Fetch buy transactions to compute avg buy price
-    const { data: txData, error: txError } = await supabase
-      .from("transaction_history")
-      .select("coin_id, transaction_type, price_per_coin, amount")
-      .eq("transaction_type", "Buy")
-      .in("coin_id", coinIds);
-    if (txError) throw txError;
+    // Fetch metadata for coins and dex pairs
+    const [coinsData, dexData] = await Promise.all([
+      supabase
+        .from("coins")
+        .select(
+          "coin_id, coin_name, symbol, marketprice, volume1h, volume24h, volume7d"
+        )
+        .in("coin_id", coinIds),
+      supabase
+        .from("dex_pairs")
+        .select(
+          "contract_address, name, base_asset_symbol, price, percent_change_price_1h, percent_change_price_24h"
+        )
+        .in("contract_address", dexAddrs),
+    ]);
 
-    // 8) Build lookup maps for coins and avg prices
-    const coinMap = new Map<any, any>();
-    coinsData?.forEach(c => {
-      coinMap.set(c.coin_id, {
-        name: c.coin_name,
-        shorthand: c.symbol,
-        current_price: c.marketprice,
-        hourly_change: c.volume1h,
-        daily_change: c.volume24h,
-        weekly_change: c.volume7d
+    const metaMap = new Map<string, any>();
+
+    // Map coin metadata
+    coinsData.data?.forEach((coin) => {
+      metaMap.set(coin.coin_id, {
+        name: coin.coin_name,
+        shorthand: coin.symbol,
+        current_price: coin.marketprice,
+        hourly_change: coin.volume1h,
+        daily_change: coin.volume24h,
+        weekly_change: coin.volume7d,
       });
     });
-    const avgBuyMap = new Map<any, number>();
-    coinIds.forEach(id => {
-      const buys = txData?.filter(t => t.coin_id === id) || [];
-      if (buys.length) {
-        const totalCost = buys.reduce((sum, t) => sum + t.price_per_coin * t.amount, 0);
-        const totalAmt = buys.reduce((sum, t) => sum + t.amount, 0);
-        avgBuyMap.set(id, totalCost / totalAmt);
-      } else {
-        avgBuyMap.set(id, 0);
-      }
+
+    // Map DEX metadata
+    dexData.data?.forEach((dex) => {
+      metaMap.set(dex.contract_address, {
+        name: dex.name,
+        shorthand: dex.base_asset_symbol,
+        current_price: dex.price,
+        hourly_change: dex.percent_change_price_1h,
+        daily_change: dex.percent_change_price_24h,
+        weekly_change: dex.percent_change_price_24h, // Placeholder for weekly
+      });
     });
 
-    // 9) Compose final response including dynamic change based on each coin's age
-    const results: AssetData[] = (assetRows || []).map(a => {
-      const info = coinMap.get(a.coin_id) || {};
-      const avg = avgBuyMap.get(a.coin_id) || 0;
-      const profit = a.value - a.amount * avg;
-      const profitPct = avg > 0 ? (profit / (a.amount * avg)) * 100 : 0;
-      const ageHours = ageMap.get(a.coin_id) ?? 0;
-      let daily = info.daily_change;
-      let weekly = info.weekly_change;
-      if (ageHours < 24) {
-        daily = info.hourly_change;
-        weekly = info.hourly_change;
-      } else if (ageHours < 72) {
-        weekly = info.daily_change;
-      }
+    const results: AssetData[] = assetRows.map((asset) => {
+      const key = asset.coin_id ?? asset.contract_address;
+      const meta = metaMap.get(key) || {};
+      const avgBuy = avgBuyMap.get(key) || 0;
+      const holdingValue = asset.amount * meta.current_price;
+      const profitLossAmount = holdingValue - asset.amount * avgBuy;
+      const profitLossPercentage =
+        avgBuy > 0 ? (profitLossAmount / (asset.amount * avgBuy)) * 100 : 0;
+
       return {
-        name: info.name! as string,
-        shorthand: info.shorthand! as string,
-        current_price: info.current_price! as number,
-        hourly_change: info.hourly_change! as number,
-        daily_change: daily as number,
-        weekly_change: weekly as number,
-        holding_amount: a.amount as number,
-        holding_value: a.value as number,
-        avg_buy_price: avg.toFixed(3) as unknown as number,
-        profit_loss_amount: profit.toFixed(3) as unknown as number,
-        profit_loss_percentage: Number(profitPct.toFixed(2)) as number,
+        name: meta.name || "Unknown",
+        shorthand: meta.shorthand || "N/A",
+        current_price: meta.current_price.toFixed(5) || 0,
+        hourly_change: meta.hourly_change || 0,
+        daily_change: meta.daily_change || 0,
+        weekly_change: meta.weekly_change || 0,
+        holding_amount: asset.amount,
+        holding_value: holdingValue,
+        avg_buy_price: Number(avgBuy.toFixed(3)),
+        profit_loss_amount: Number(profitLossAmount.toFixed(3)),
+        profit_loss_percentage: Number(profitLossPercentage.toFixed(2)),
       };
     });
 
