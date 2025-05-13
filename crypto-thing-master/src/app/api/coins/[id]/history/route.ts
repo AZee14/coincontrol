@@ -6,12 +6,16 @@ import { parse } from 'url';
 const coinSlugToId: Record<string, number> = {
   bitcoin: 1,
   ethereum: 1027,
-  dogecoin: 74,
-  cardano: 2010,
+  tether: 825,     // Tether's CoinMarketCap ID
   binancecoin: 1839,
+  cardano: 2010,
+  solana: 5426,    // Solana's ID
+  'usd-coin': 3408, // USD Coin's ID
+  xrp: 52,         // XRP's ID
+  polkadot: 6636,  // Polkadot's ID
+  dogecoin: 74,
   // add more…
 };
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

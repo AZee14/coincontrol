@@ -22,9 +22,14 @@ export interface CoinDataPoint {
 const AVAILABLE_COINS = [
   { slug: 'bitcoin',     symbol: 'BTC',  name: 'Bitcoin'      },
   { slug: 'ethereum',    symbol: 'ETH',  name: 'Ethereum'     },
-  { slug: 'dogecoin',    symbol: 'DOGE', name: 'Dogecoin'     },
+  { slug: 'tether',      symbol: 'USDT', name: 'Tether'       },
+  { slug: 'binancecoin', symbol: 'BNB',  name: 'Binance Coin' },
   { slug: 'cardano',     symbol: 'ADA',  name: 'Cardano'      },
-  { slug: 'binancecoin', symbol: 'BNB',  name: 'Binance Coin' }
+  { slug: 'solana',      symbol: 'SOL',  name: 'Solana'       },
+  { slug: 'usd-coin',    symbol: 'USDC', name: 'USD Coin'     },
+  { slug: 'xrp',         symbol: 'XRP',  name: 'XRP'          },
+  { slug: 'polkadot',    symbol: 'DOT',  name: 'Polkadot'     },
+  { slug: 'dogecoin',    symbol: 'DOGE', name: 'Dogecoin'     }
 ];
 
 interface CoinChartProps {
@@ -42,7 +47,7 @@ const CoinChart: React.FC<CoinChartProps> = ({
   showMarketCap = false,
   height = 400
 }) => {
-  const [selectedCoin, setSelectedCoin] = useState(AVAILABLE_COINS[2]); // default DOGE
+  const [selectedCoin, setSelectedCoin] = useState(AVAILABLE_COINS[0]); // default to Bitcoin (index 0)
   const [selectedTimeFrame, setSelectedTimeFrame] = useState(timeFrame);
   const [chartData, setChartData] = useState<CoinDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,7 +177,7 @@ const CoinChart: React.FC<CoinChartProps> = ({
       {/* Chart or fallback */}
       {chartData.length === 0 ? (
         <div className="text-center text-gray-500">
-          No historical data available for “{selectedTimeFrame}.”
+          No historical data available for &quot;{selectedTimeFrame}&quot;.
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={height}>
