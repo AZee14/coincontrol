@@ -198,7 +198,7 @@ export default function LandingPage() {
                       </Select>
                     </FormControl>
                   </Box>
-                  <Button
+                  {/*<Button
                     component={Link}
                     href={`/coin/${selectedCoin.coin_id}`}
                     variant="outlined"
@@ -214,7 +214,7 @@ export default function LandingPage() {
                     }}
                   >
                     View Detailed Analysis
-                  </Button>
+                  </Button>*/}
                 </Box>
                 
                 {/* CHART CONTAINER - MODIFIED FOR SPACING */}
@@ -354,20 +354,20 @@ export default function LandingPage() {
               }}
             >
               Top Cryptocurrencies
-            </Typography>
-            <Button
+            </Typography> 
+            {/* <Button
               component={Link}
               href="/coins"
               endIcon={<span>→</span>}
               sx={{
-                color: '#0074e4',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 116, 228, 0.04)',
-                }
+              color: '#0074e4',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 116, 228, 0.04)',
+              }
               }}
             >
               View All Markets
-            </Button>
+            </Button> */}
           </Box>
           
           {isLoading ? (
