@@ -8,6 +8,7 @@ import {
   TableBody,
   CircularProgress,
   Box,
+  Button,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
@@ -45,6 +46,8 @@ export interface AssetData {
 }
 interface AssetsProps {
   onBuySellClick: (asset: AssetData) => void;
+  onViewDetailedAnalysis: (asset: AssetData) => void; // Add this prop
+  
 }
 
 const useStyles = makeStyles({
@@ -78,7 +81,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   db: { schema: "cryptothing" },
 });
 
-function Assets({ onBuySellClick, assets, loading}: any) {
+function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: AssetsProps & { assets: AssetData[]; loading: boolean }) {
   const classes = useStyles();
   const { user, isInitialized } = useStytchUser();
 
@@ -269,6 +272,13 @@ function Assets({ onBuySellClick, assets, loading}: any) {
                     Buy/Sell
                   </Typography>
                 </TableCell>
+                <Button
+  variant="text"
+  size="small"
+  onClick={() => onViewDetailedAnalysis(asset)}
+>
+  View detailed analysis
+</Button>
               </TableRow>
             ))
           ) : (

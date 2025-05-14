@@ -26,6 +26,7 @@ import { useStytchUser } from "@stytch/nextjs";
 import { getAllCoins } from "@/utils/coins";
 import { Coin, UserDetails } from "@/types";
 import type { AssetData } from "./Assets";
+import { useRouter } from "next/navigation";
 import {
   getAllTimeProfit,
   getBestPerformer,
@@ -60,6 +61,7 @@ const HomePage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { user, isInitialized } = useStytchUser();
+  const router = useRouter();
 
   // Main state
   const [data, setData] = useState({
@@ -327,6 +329,12 @@ const HomePage: React.FC = () => {
     );
   }
 
+  function handleViewDetailedAnalysis(asset: AssetData): void {
+    router.push(
+      `/coin/${asset.coin_id}?data=${encodeURIComponent(JSON.stringify(asset))}`
+    );
+  }
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container>
@@ -392,6 +400,7 @@ const HomePage: React.FC = () => {
         {selectedTab === 0 && (
           <Assets
             onBuySellClick={handleAssetBuySell}
+            onViewDetailedAnalysis={handleViewDetailedAnalysis}
             assets={data.assets}
             loading={loading.assets}
           />
