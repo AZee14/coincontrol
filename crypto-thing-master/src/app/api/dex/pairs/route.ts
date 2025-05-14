@@ -29,8 +29,6 @@ export async function POST(req: Request) {
     quote_asset_symbol: p.quote_asset_symbol,
     price: p.quote[0]?.price,
     volume_24h: p.quote[0]?.volume_24h,
-    no_of_buys_24h: p["24h_no_of_buys"],
-    no_of_sells_24h: p["24h_no_of_sells"],
     liquidity: p.quote[0]?.liquidity,
     last_updated: p.last_updated,
   }));

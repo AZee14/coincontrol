@@ -20,7 +20,7 @@ interface Transaction {
 }
 
 interface Coin {
-  coin_id: String;
+  coin_id: string;
   coin_name: string;
   marketprice: string;
   symbol: string;

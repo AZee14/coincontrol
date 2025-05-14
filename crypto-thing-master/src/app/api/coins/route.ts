@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         percent_change_1h,
         percent_change_24h,
         percent_change_7d,
+        volume_24h
       } = item.quote.USD;
 
       return {
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
         marketprice: price,
         marketcap: market_cap,
         last_updated,
+        trading_volume_24h:volume_24h,
         volume24h: percent_change_24h,
         volume1h: percent_change_1h,
         volume7d: percent_change_7d,

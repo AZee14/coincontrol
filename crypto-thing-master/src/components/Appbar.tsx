@@ -64,15 +64,15 @@ function AppBar() {
   // UNCOMMENT THIS
   // React.useEffect(() => {
   //   // run immediately
-  //   // updateCoins();
-  //   // updateDexExchanges()
-  //   // updateDexPairs()
+  //   updateCoins();
+  //   // updateDexExchanges();
+  //   // updateDexPairs();
 
   //   // then schedule
   //   const interval = setInterval(() => {
-  //     // updateCoins();
-  //     // updateDexExchanges()
-  //   // updateDexPairs()
+  //     updateCoins();
+  //     // updateDexExchanges();
+  //     // updateDexPairs();
   //   }, COIN_POST_REQUEST_TIME);
 
   //   return () => clearInterval(interval);

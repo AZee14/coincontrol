@@ -13,13 +13,14 @@ import React, { useEffect, useState } from "react";
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { useStytchUser } from "@stytch/nextjs";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 import { getAssets } from "@/utils/user";
 import { getDexExchanges } from "@/utils/dex";
 
 // Define the type for asset data
 export interface AssetData {
-  coin_id?: string | number;
+  coin_id?: string | number | null;
+  contract_address?: string | null;
   name: string;
   shorthand: string;
   current_price?: number;
@@ -43,7 +44,7 @@ export interface AssetData {
   user_id?: string;
 }
 interface AssetsProps {
-   onBuySellClick: (asset: AssetData) => void;
+  onBuySellClick: (asset: AssetData) => void;
 }
 
 const useStyles = makeStyles({
@@ -53,25 +54,29 @@ const useStyles = makeStyles({
     paddingTop: 0,
     paddingBottom: 0,
     paddingRight: 0,
-    textAlign: 'right'
+    textAlign: "right",
   },
   th: {
-    textAlign: 'right',
+    textAlign: "right",
     paddingTop: 0,
     paddingBottom: 0,
     paddingRight: 0,
-  }
+  },
 });
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Supabase URL or Key is not defined in environment variables.");
+  throw new Error(
+    "Supabase URL or Key is not defined in environment variables."
+  );
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey, { db: { schema: 'cryptothing' } });
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  db: { schema: "cryptothing" },
+});
 
 function Assets({ onBuySellClick }: AssetsProps) {
   const classes = useStyles();
@@ -80,35 +85,36 @@ function Assets({ onBuySellClick }: AssetsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
   useEffect(() => {
     const fetchAssets = async () => {
       if (!isInitialized || !user) return;
-      
+
       try {
         setLoading(true);
-        
+
         // Fetch user's assets from Supabase
-        const data = await getAssets(user.user_id)
-                  
+        const data = await getAssets(user.user_id);
+
         if (error) throw error;
-        
-        setAssets(data.results || [] as AssetData[]);
+
+        setAssets(data.results || ([] as AssetData[]));
       } catch (err) {
         console.error("Error fetching assets:", err);
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchAssets();
-  }, [isInitialized, user,error]);
+  }, [isInitialized, user, error]);
 
   // Fallback for loading state
   if (loading && isInitialized && user) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
         <CircularProgress />
       </Box>
     );
@@ -117,7 +123,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
   // Fallback for error state
   if (error) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Box sx={{ p: 3, textAlign: "center" }}>
         <Typography color="error">Error loading assets: {error}</Typography>
       </Box>
     );
@@ -181,10 +187,10 @@ function Assets({ onBuySellClick }: AssetsProps) {
               <TableRow key={index}>
                 <TableCell
                   className={classes.tc}
-                  sx={{ textAlign: 'left !important' }}
+                  sx={{ textAlign: "left !important" }}
                 >
                   <Typography sx={{ color: "black", fontSize: "15px" }}>
-                    {asset.coin_id}
+                    {asset.name}
                   </Typography>
                   <Typography color="secondary" sx={{ fontSize: "14px" }}>
                     {asset.shorthand?.toUpperCase()}
@@ -203,7 +209,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: 'flex-end'
+                      justifyContent: "flex-end",
                     }}
                   >
                     {Number(asset.hourly_change) > 0 ? (
@@ -222,7 +228,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: 'flex-end'
+                      justifyContent: "flex-end",
                     }}
                   >
                     {Number(asset.daily_change) > 0 ? (
@@ -241,7 +247,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
                       fontSize: "14px",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: 'flex-end'
+                      justifyContent: "flex-end",
                     }}
                   >
                     {Number(asset.weekly_change) > 0 ? (
@@ -278,7 +284,7 @@ function Assets({ onBuySellClick }: AssetsProps) {
                       display: "flex",
                       alignItems: "center",
                       fontSize: "12px",
-                      justifyContent: 'flex-end'
+                      justifyContent: "flex-end",
                     }}
                   >
                     {Number(asset.profit_loss_percentage) > 0 ? (
@@ -290,13 +296,16 @@ function Assets({ onBuySellClick }: AssetsProps) {
                   </Typography>
                 </TableCell>
                 <TableCell className={classes.tc}>
-         <Typography
-             sx={{ fontWeight: "600", cursor: "pointer", color: "#1976d2" }}
-                  onClick={() => onBuySellClick(asset)}
-                >
-                  Buy/Sell
-                </Typography>
-
+                  <Typography
+                    sx={{
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      color: "#1976d2",
+                    }}
+                    onClick={() => onBuySellClick(asset)}
+                  >
+                    Buy/Sell
+                  </Typography>
                 </TableCell>
               </TableRow>
             ))

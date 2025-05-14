@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, ChangeEvent } from "react";
 import {
   Box,
   Button,
@@ -119,7 +119,7 @@ const HomePage: React.FC = () => {
     setModalTab(0); // 0 = Buy
 
     // 3) prefill the dropdown and inputs:
-    setSelectedCoinId(String(asset.coin_id)); // this drives your <TextField select value=…
+    handleCoinChange(null, String(asset.coin_id ?? asset.contract_address)); // this drives your <TextField select value=…
     setPricePerCoin(String(asset.current_price ?? 0));
     setQuantity(String(asset.holding_amount ?? ""));
 
@@ -223,7 +223,8 @@ const HomePage: React.FC = () => {
       setTopCoins(data);
 
       // Set Bitcoin as the default selected coin
-      const bitcoin = data.find((coin: TopCoin) => coin.symbol === "BTC") || data[0];
+      const bitcoin =
+        data.find((coin: TopCoin) => coin.symbol === "BTC") || data[0];
       setSelectedCoin(bitcoin);
 
       // Simulate chart loading
@@ -286,24 +287,34 @@ const HomePage: React.FC = () => {
     }
   }, [user?.user_id, transactions, fetchPortfolioStats]);
 
-  const handleCoinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const selected = e.target.value;
-  setSelectedCoinId(selected); // Set the selectedCoinId correctly
-  
-  // Update price per coin based on the selected item type
-  if (itemTypeTab === 0) {
-    const coinObj = coins.find((c) => c.coin_id === selected);
-    if (coinObj) {
-      setPricePerCoin(coinObj.marketprice);
+  const handleCoinChange = (
+    e: React.ChangeEvent<HTMLInputElement> | null = null,
+    selected: string | null = null
+  ) => {
+    let tab = itemTypeTab;
+    if (selected && !parseInt(selected, 10)) {
+      tab = 1;
+      setItemTypeTab(tab);
+    } else if (selected) {
+      tab = 0;
+      setItemTypeTab(tab);
+    } else selected = e!.target.value;
+    if (tab === 0) {
+      const coinObj = coins.find((c) => c.coin_id === selected);
+      if (coinObj) {
+        setSelectedCoin(
+          itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected
+        );
+        setPricePerCoin(coinObj.marketprice);
+      }
+    } else {
+      const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
+      if (dexPairObj) {
+        setSelectedCoin(dexPairObj);
+        setPricePerCoin(dexPairObj.price);
+      }
     }
-  } else {
-    const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
-    if (dexPairObj) {
-      setPricePerCoin(dexPairObj.price);
-    }
-  }
-};
-
+  };
 
   // Handler for changing selected coin in Market tab
   const handleMarketCoinChange = (event: SelectChangeEvent<string>) => {
@@ -462,7 +473,8 @@ const HomePage: React.FC = () => {
                               variant="h6"
                               fontWeight="600"
                               sx={{
-                                background: "linear-gradient(90deg, #1a2c50, #0074e4)",
+                                background:
+                                  "linear-gradient(90deg, #1a2c50, #0074e4)",
                                 backgroundClip: "text",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
@@ -484,7 +496,10 @@ const HomePage: React.FC = () => {
                         )}
                       >
                         {topCoins.map((coin) => (
-                          <MenuItem key={coin._id} value={coin.coin_id.toString()}>
+                          <MenuItem
+                            key={coin._id}
+                            value={coin.coin_id.toString()}
+                          >
                             <Box display="flex" alignItems="center">
                               <Typography
                                 variant="body1"
@@ -566,7 +581,8 @@ const HomePage: React.FC = () => {
                     mt: -8,
                     zIndex: 5,
                     "& > div": {
-                      transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                      transition:
+                        "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
                       "&:hover": {
                         transform: "translateY(-4px)",
                         boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)",
@@ -834,92 +850,117 @@ const HomePage: React.FC = () => {
                           </Typography>
                         </td>
                         <td className="py-4 px-6 text-center">
-                                                 {coin.price_change_24h ? (
-                                                   <Box 
-                                                     sx={{
-                                                       display: 'inline-flex',
-                                                       alignItems: 'center',
-                                                       justifyContent: 'center',
-                                                       backgroundColor: coin.price_change_24h > 0 ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-                                                       color: coin.price_change_24h > 0 ? '#16a34a' : '#dc2626',
-                                                       fontWeight: 600,
-                                                       borderRadius: '4px',
-                                                       padding: '4px 8px',
-                                                       fontSize: '14px',
-                                                       margin: '0 auto',
-                                                       width: 'fit-content'
-                                                     }}
-                                                   >
-                                                     <Box 
-                                                       component="span" 
-                                                       sx={{
-                                                         display: 'inline-flex',
-                                                         alignItems: 'center',
-                                                         '&::before': {
-                                                           content: '""',
-                                                           display: 'inline-block',
-                                                           width: '0',
-                                                           height: '0',
-                                                           marginRight: '4px',
-                                                           borderLeft: '4px solid transparent',
-                                                           borderRight: '4px solid transparent',
-                                                           borderBottom: coin.price_change_24h > 0 ? '6px solid #16a34a' : 'none',
-                                                           borderTop: coin.price_change_24h <= 0 ? '6px solid #dc2626' : 'none',
-                                                         }
-                                                       }}
-                                                     >
-                                                       {coin.price_change_24h > 0 ? '+' : ''}{coin.price_change_24h.toFixed(2)}%
-                                                     </Box>
-                                                   </Box>
-                                                 ) : (
-                                                   <Typography sx={{ color: '#58667e', fontWeight: 500, textAlign: 'center' }}>N/A</Typography>
-                                                 )}
-                                               </td>
-                                               <td className="py-4 px-6 text-right">
-                                                 <Typography sx={{ 
-                                                   fontWeight: 600, 
-                                                   color: '#1a2c50',
-                                                   fontSize: '15px'
-                                                 }}>
-                                                   ${(coin.market_cap / 1e9).toFixed(2)}B
-                                                 </Typography>
-                                               </td>
-                                               <td className="py-4 px-6 text-right">
-                                                 <Typography sx={{ 
-                                                   fontWeight: 600, 
-                                                   color: '#1a2c50',
-                                                   fontSize: '15px'
-                                                 }}>
-                                                   ${(coin.volume_24h / 1e9).toFixed(2)}B
-                                                 </Typography>
-                                               </td>
-                                             </tr>
-                                           ))}
-                                         </tbody>
-                                       </table>
-                                     </Box>
-                                   </Paper>
-                                 )}
-                               </section>
-                             </div>
-                           </Fade>
-                         );
-                      return (
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <Container>
-                              <Grid container>
-                                <Grid item xs={6}>
-                                  <Box textAlign="left">
-                                    <Typography
-                                      fontWeight={500}
-                                      sx={{ color: "#616e85", fontSize: "24px" }}
-                                    >
-                                      {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
-                                    </Typography>
-                                    <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
-                                      ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
-                                    </Typography>
-                                    {/* <Typography
+                          {coin.price_change_24h ? (
+                            <Box
+                              sx={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor:
+                                  coin.price_change_24h > 0
+                                    ? "rgba(22, 163, 74, 0.1)"
+                                    : "rgba(220, 38, 38, 0.1)",
+                                color:
+                                  coin.price_change_24h > 0
+                                    ? "#16a34a"
+                                    : "#dc2626",
+                                fontWeight: 600,
+                                borderRadius: "4px",
+                                padding: "4px 8px",
+                                fontSize: "14px",
+                                margin: "0 auto",
+                                width: "fit-content",
+                              }}
+                            >
+                              <Box
+                                component="span"
+                                sx={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  "&::before": {
+                                    content: '""',
+                                    display: "inline-block",
+                                    width: "0",
+                                    height: "0",
+                                    marginRight: "4px",
+                                    borderLeft: "4px solid transparent",
+                                    borderRight: "4px solid transparent",
+                                    borderBottom:
+                                      coin.price_change_24h > 0
+                                        ? "6px solid #16a34a"
+                                        : "none",
+                                    borderTop:
+                                      coin.price_change_24h <= 0
+                                        ? "6px solid #dc2626"
+                                        : "none",
+                                  },
+                                }}
+                              >
+                                {coin.price_change_24h > 0 ? "+" : ""}
+                                {coin.price_change_24h.toFixed(2)}%
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Typography
+                              sx={{
+                                color: "#58667e",
+                                fontWeight: 500,
+                                textAlign: "center",
+                              }}
+                            >
+                              N/A
+                            </Typography>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#1a2c50",
+                              fontSize: "15px",
+                            }}
+                          >
+                            ${(coin.market_cap / 1e9).toFixed(2)}B
+                          </Typography>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#1a2c50",
+                              fontSize: "15px",
+                            }}
+                          >
+                            ${(coin.volume_24h / 1e9).toFixed(2)}B
+                          </Typography>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Box>
+            </Paper>
+          )}
+        </section>
+      </div>
+    </Fade>
+  );
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Container>
+        <Grid container>
+          <Grid item xs={6}>
+            <Box textAlign="left">
+              <Typography
+                fontWeight={500}
+                sx={{ color: "#616e85", fontSize: "24px" }}
+              >
+                {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
+              </Typography>
+              <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
+                ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
+              </Typography>
+              {/* <Typography
                                       fontWeight={500}
                                       sx={{
                                         color:
@@ -934,53 +975,53 @@ const HomePage: React.FC = () => {
                                       {portfolioStats.todayCondition?.net_change_24h?.toFixed(2)}${" "}
                                       {portfolioStats.todayCondition?.percentage_change_24h}% (24h)
                                     </Typography> */}
-                                  </Box>
-                                </Grid>
-                                <Grid
-                                  item
-                                  xs={6}
-                                  sx={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <Button
-                                    variant="contained"
-                                    sx={{
-                                      background: "linear-gradient(to right, #6366f1, #3b82f6)",
-                                      borderRadius: "10px",
-                                      textTransform: "none",
-                                      fontWeight: 600,
-                                      px: 3,
-                                      py: 1.5,
-                                      boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
-                                      ":hover": {
-                                        background: "linear-gradient(to right, #4f46e5, #2563eb)",
-                                      },
-                                    }}
-                                    startIcon={<Add />}
-                                    onClick={handleOpenModal}
-                                  >
-                                    Add Transaction
-                                  </Button>
-                                </Grid>
-                              </Grid>
-                      
-                              <Performers
-                                allTimeProfit={portfolioStats.allTimeProfit}
-                                bestPerformer={portfolioStats.bestPerformer}
-                                worstPerformer={portfolioStats.worstPerformer}
-                              />
-                              <Divider sx={{ width: "100%", mt: 2 }} />
-                      
-                              <Tabs value={selectedTab} onChange={handleTabChange}>
-                                {tabs.map((tab, i) => (
-                                  <Tab key={i} label={tab} />
-                                ))}
-                              </Tabs>
-                               
-{selectedTab === 0 && <Assets onBuySellClick={handleAssetBuySell} />}
+            </Box>
+          </Grid>
+          <Grid
+            item
+            xs={6}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              variant="contained"
+              sx={{
+                background: "linear-gradient(to right, #6366f1, #3b82f6)",
+                borderRadius: "10px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
+                ":hover": {
+                  background: "linear-gradient(to right, #4f46e5, #2563eb)",
+                },
+              }}
+              startIcon={<Add />}
+              onClick={handleOpenModal}
+            >
+              Add Transaction
+            </Button>
+          </Grid>
+        </Grid>
+
+        <Performers
+          allTimeProfit={portfolioStats.allTimeProfit}
+          bestPerformer={portfolioStats.bestPerformer}
+          worstPerformer={portfolioStats.worstPerformer}
+        />
+        <Divider sx={{ width: "100%", mt: 2 }} />
+
+        <Tabs value={selectedTab} onChange={handleTabChange}>
+          {tabs.map((tab, i) => (
+            <Tab key={i} label={tab} />
+          ))}
+        </Tabs>
+
+        {selectedTab === 0 && <Assets onBuySellClick={handleAssetBuySell} />}
         {selectedTab === 1 && (
           <Transactions
             data={formattedTransactions}
@@ -988,150 +1029,152 @@ const HomePage: React.FC = () => {
           />
         )}
         {selectedTab === 2 && renderMarketContent()}
-                      
-                              <Modal open={isModalOpen} onClose={handleCloseModal}>
-                                <Box
-                                  sx={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    left: "50%",
-                                    transform: "translate(-50%, -50%)",
-                                    width: { xs: "90%", sm: "27rem" },
-                                    bgcolor: "white",
-                                    boxShadow: 24,
-                                    p: 4,
-                                    borderRadius: "15px",
-                                    border: "1px solid #e5e7eb",
-                                  }}
-                                >
-                                  <Box display="flex" justifyContent="space-between">
-                                    <Typography variant="h6" fontWeight={600}>
-                                      Add Transaction
-                                    </Typography>
-                                    <IconButton onClick={handleCloseModal}>
-                                      <Close />
-                                    </IconButton>
-                                  </Box>
-                      
-                                  <Tabs
-                                    value={modalTab}
-                                    onChange={handleModalTabChange}
-                                    variant="fullWidth"
-                                  >
-                                    <Tab label="Buy" />
-                                    <Tab label="Sell" />
-                                  </Tabs>
-                      
-                                  <Box mt={2} display="flex" flexDirection="column" gap={2}>
-                                    <Tabs
-                                      value={itemTypeTab}
-                                      onChange={(_, v) => setItemTypeTab(v)}
-                                      variant="fullWidth"
-                                    >
-                                      <Tab label="Coin" />
-                                      <Tab label="DEX Pair" />
-                                    </Tabs>
-<TextField
-  select
-  label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
-  value={selectedCoinId} // Changed from selectedCoin to selectedCoinId
-  onChange={handleCoinChange}
-  fullWidth
-  sx={textFieldSx}
-  InputProps={textFieldInputProps}
->
-  {itemTypeTab === 0
-    ? coins.map((c) => (
-        <MenuItem key={c.coin_id} value={String(c.coin_id)}>
-          {`${c.coin_name} (${c.symbol})`}
-        </MenuItem>
-      ))
-    : dexPairs.map((p) => (
-        <MenuItem
-          key={p.contract_address}
-          value={p.contract_address}
-        >
-          {p.name}
-        </MenuItem>
-      ))}
-</TextField>
-                      
-                                    <Grid container spacing={2}>
-                                      <Grid item xs={6}>
-                                        <TextField
-                                          label="Quantity"
-                                          value={quantity}
-                                          onChange={handleQuantityChange}
-                                          fullWidth
-                                          sx={textFieldSx}
-                                          InputProps={textFieldInputProps}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={6}>
-                                        <TextField
-                                          label="Price per Coin"
-                                          value={pricePerCoin}
-                                          onChange={handlePricePerCoinChange}
-                                          fullWidth
-                                          sx={textFieldSx}
-                                          InputProps={textFieldInputProps}
-                                        />
-                                      </Grid>
-                                    </Grid>
-                      
-                                    <DemoItem>
-                                      <DateTimeField
-                                        label="Transaction Date & Time"
-                                        value={dayjs(dateTime)}
-                                        onChange={(val) => setDateTime(val?.toDate() || new Date())}
-                                        sx={textFieldSx}
-                                        InputProps={textFieldInputProps}
-                                      />
-                                    </DemoItem>
-                      
-                                    <Box
-                                      sx={{
-                                        backgroundColor: "#f8fafc",
-                                        borderRadius: "12px",
-                                        p: 2,
-                                        mt: 1,
-                                        border: "1px solid #e2e8f0",
-                                      }}
-                                    >
-                                      <Typography sx={{ color: "#64748b", fontSize: "14px" }}>
-                                        {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
-                                      </Typography>
-                                      <Typography
-                                        sx={{ fontSize: "24px", fontWeight: 700, color: "#0f172a" }}
-                                      >
-                                        ${(Number(quantity) * Number(pricePerCoin)).toFixed(4)}
-                                      </Typography>
-                                    </Box>
-                      
-                                    <Button
-                                      variant="contained"
-                                      fullWidth
-                                      disabled={isAddTransactionDisabled}
-                                      onClick={handleAddTransaction}
-                                      sx={{
-                                        height: "3rem",
-                                        borderRadius: "10px",
-                                        fontWeight: 600,
-                                        fontSize: "16px",
-                                        backgroundColor: "#3b82f6",
-                                        ":hover": {
-                                          backgroundColor: "#2563eb",
-                                        },
-                                      }}
-                                    >
-                                      Add Transaction
-                                    </Button>
-                                  </Box>
-                                </Box>
-                              </Modal>
-                            </Container>
-                          </LocalizationProvider>
-                        );
-                      };
-                      
-                      export default HomePage;
+
+        <Modal open={isModalOpen} onClose={handleCloseModal}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: "90%", sm: "27rem" },
+              bgcolor: "white",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: "15px",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            <Box display="flex" justifyContent="space-between">
+              <Typography variant="h6" fontWeight={600}>
+                Add Transaction
+              </Typography>
+              <IconButton onClick={handleCloseModal}>
+                <Close />
+              </IconButton>
+            </Box>
+
+            <Tabs
+              value={modalTab}
+              onChange={handleModalTabChange}
+              variant="fullWidth"
+            >
+              <Tab label="Buy" />
+              <Tab label="Sell" />
+            </Tabs>
+
+            <Box mt={2} display="flex" flexDirection="column" gap={2}>
+              <Tabs
+                value={itemTypeTab}
+                onChange={(_, v) => setItemTypeTab(v)}
+                variant="fullWidth"
+              >
+                <Tab label="Coin" />
+                <Tab label="DEX Pair" />
+              </Tabs>
+              <TextField
+                select
+                label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
+                value={selectedCoinId} // Changed from selectedCoin to selectedCoinId
+                onChange={(e) =>
+                  handleCoinChange(e as ChangeEvent<HTMLInputElement>, null)
+                }
+                fullWidth
+                sx={textFieldSx}
+                InputProps={textFieldInputProps}
+              >
+                {itemTypeTab === 0
+                  ? coins.map((c) => (
+                      <MenuItem key={c.coin_id} value={String(c.coin_id)}>
+                        {`${c.coin_name} (${c.symbol})`}
+                      </MenuItem>
+                    ))
+                  : dexPairs.map((p) => (
+                      <MenuItem
+                        key={p.contract_address}
+                        value={p.contract_address}
+                      >
+                        {p.name}
+                      </MenuItem>
+                    ))}
+              </TextField>
+
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Quantity"
+                    value={quantity}
+                    onChange={handleQuantityChange}
+                    fullWidth
+                    sx={textFieldSx}
+                    InputProps={textFieldInputProps}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Price per Coin"
+                    value={pricePerCoin}
+                    onChange={handlePricePerCoinChange}
+                    fullWidth
+                    sx={textFieldSx}
+                    InputProps={textFieldInputProps}
+                  />
+                </Grid>
+              </Grid>
+
+              <DemoItem>
+                <DateTimeField
+                  label="Transaction Date & Time"
+                  value={dayjs(dateTime)}
+                  onChange={(val) => setDateTime(val?.toDate() || new Date())}
+                  sx={textFieldSx}
+                  InputProps={textFieldInputProps}
+                />
+              </DemoItem>
+
+              <Box
+                sx={{
+                  backgroundColor: "#f8fafc",
+                  borderRadius: "12px",
+                  p: 2,
+                  mt: 1,
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <Typography sx={{ color: "#64748b", fontSize: "14px" }}>
+                  {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
+                </Typography>
+                <Typography
+                  sx={{ fontSize: "24px", fontWeight: 700, color: "#0f172a" }}
+                >
+                  ${(Number(quantity) * Number(pricePerCoin)).toFixed(4)}
+                </Typography>
+              </Box>
+
+              <Button
+                variant="contained"
+                fullWidth
+                disabled={isAddTransactionDisabled}
+                onClick={handleAddTransaction}
+                sx={{
+                  height: "3rem",
+                  borderRadius: "10px",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  backgroundColor: "#3b82f6",
+                  ":hover": {
+                    backgroundColor: "#2563eb",
+                  },
+                }}
+              >
+                Add Transaction
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+      </Container>
+    </LocalizationProvider>
+  );
+};
+
+export default HomePage;

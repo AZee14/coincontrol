@@ -9,6 +9,8 @@ const supabase = createClient(
 
 export async function GET(req: Request) {
   interface AssetData {
+    coin_id:string;
+    contract_address:string;
     name: string;
     shorthand: string;
     current_price: number;
@@ -116,6 +118,7 @@ export async function GET(req: Request) {
     // Map coin metadata
     coinsData.data?.forEach((coin) => {
       metaMap.set(coin.coin_id, {
+        coin_id:coin.coin_id,
         name: coin.coin_name,
         shorthand: coin.symbol,
         current_price: coin.marketprice,
@@ -128,6 +131,7 @@ export async function GET(req: Request) {
     // Map DEX metadata
     dexData.data?.forEach((dex) => {
       metaMap.set(dex.contract_address, {
+        contract_address:dex.contract_address,
         name: dex.name,
         shorthand: dex.base_asset_symbol,
         current_price: dex.price,
@@ -147,6 +151,8 @@ export async function GET(req: Request) {
         avgBuy > 0 ? (profitLossAmount / (asset.amount * avgBuy)) * 100 : 0;
 
       return {
+        coin_id:meta.coin_id || null,
+        contract_address:meta.contract_address || null,
         name: meta.name || "Unknown",
         shorthand: meta.shorthand || "N/A",
         current_price: meta.current_price.toFixed(5) || 0,

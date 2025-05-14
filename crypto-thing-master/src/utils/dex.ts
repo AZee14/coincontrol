@@ -120,6 +120,11 @@ export async function getDexPairs() {
   return res.data;
 }
 
+export async function getAllDataOnDexPairs() {
+  const res = await axios.get(`${API_URL}/pairs/allData`);
+  return res.data;
+}
+
 export async function getDexTransactions() {
   const res = await axios.get(`${API_URL}/transactions`);
   return res.data;
