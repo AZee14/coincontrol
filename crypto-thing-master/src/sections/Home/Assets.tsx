@@ -78,53 +78,15 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   db: { schema: "cryptothing" },
 });
 
-function Assets({ onBuySellClick }: AssetsProps) {
+function Assets({ onBuySellClick, assets, loading}: any) {
   const classes = useStyles();
   const { user, isInitialized } = useStytchUser();
-  const [assets, setAssets] = useState<AssetData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAssets = async () => {
-      if (!isInitialized || !user) return;
-
-      try {
-        setLoading(true);
-
-        // Fetch user's assets from Supabase
-        const data = await getAssets(user.user_id);
-
-        if (error) throw error;
-
-        setAssets(data.results || ([] as AssetData[]));
-      } catch (err) {
-        console.error("Error fetching assets:", err);
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssets();
-  }, [isInitialized, user, error]);
 
   // Fallback for loading state
   if (loading && isInitialized && user) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  // Fallback for error state
-  if (error) {
-    return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography color="error">Error loading assets: {error}</Typography>
       </Box>
     );
   }
@@ -182,8 +144,8 @@ function Assets({ onBuySellClick }: AssetsProps) {
       </TableHead>
       {isInitialized && user && (
         <TableBody>
-          {assets.length > 0 ? (
-            assets.map((asset, index) => (
+          {assets?.length > 0 ? (
+            assets.map((asset: any, index: any) => (
               <TableRow key={index}>
                 <TableCell
                   className={classes.tc}

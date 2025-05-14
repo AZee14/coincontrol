@@ -1,46 +1,30 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useEffect, useState, useCallback, ChangeEvent } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Button,
   Container,
   Grid,
-  IconButton,
-  Modal,
   Tab,
   Tabs,
-  TextField,
   Typography,
-  MenuItem,
   Divider,
-  CircularProgress,
-  Paper,
-  Skeleton,
-  Fade,
   useTheme,
   useMediaQuery,
-  Chip,
-  FormControl,
-  Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { Add, Close } from "@mui/icons-material";
-import { DateTimeField, LocalizationProvider } from "@mui/x-date-pickers";
+import { Add } from "@mui/icons-material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { DemoItem } from "@mui/x-date-pickers/internals/demo";
 import Performers from "./Performers";
 import Transactions from "./Transactions";
 import Assets from "./Assets";
-import CoinChart from "@/components/CoinChart";
-import { textFieldInputProps, textFieldSx } from "./styles";
-import { sendTransactionData } from "@/utils/transactions";
-import { getTransactions, getUserDetails } from "@/utils/user";
+import { getAssets, getTransactions, getUserDetails } from "@/utils/user";
 import { useStytchUser } from "@stytch/nextjs";
 import { getAllCoins } from "@/utils/coins";
-import { PortfolioTransaction, Coin, UserDetails } from "@/types";
+import { Coin, UserDetails } from "@/types";
 import type { AssetData } from "./Assets";
 import {
   getAllTimeProfit,
@@ -49,6 +33,7 @@ import {
 } from "@/utils/portfolio";
 import { getDexPairs } from "@/utils/dex";
 import MarketTab from "./MarketTab";
+import TransactionModal from "./TransactionModal";
 
 // Define a TopCoin interface for market data
 interface TopCoin {
@@ -63,361 +48,284 @@ interface TopCoin {
   price_change_24h?: number;
 }
 
+// Global state and cache (outside component to persist between renders)
+const dataCache = {
+  coins: null as Coin[] | null,
+  dexPairs: null as any[] | null,
+  topCoins: null as TopCoin[] | null,
+};
+
 const HomePage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { user, isInitialized } = useStytchUser();
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
-  const [coins, setCoins] = useState<Coin[]>([]);
-  const [dexPairs, setDexPairs] = useState<any[]>([]);
-  const [portfolioStats, setPortfolioStats] = useState<any>({
-    allTimeProfit: undefined,
-    bestPerformer: undefined,
-    worstPerformer: undefined,
-  });
-  const [loading, setLoading] = useState({
-    coins: true,
-    transactions: true,
-    userDetails: true,
-    dexPairs: true,
-    portfolioStats: true,
-    topCoins: true,
-    chartLoaded: false,
-  });
 
-  // New states for Market tab
-  const [topCoins, setTopCoins] = useState<TopCoin[]>([]);
+  // Main state
+  const [data, setData] = useState({
+    transactions: [] as any[],
+    userDetails: null as UserDetails | null,
+    coins: [] as Coin[],
+    dexPairs: [] as any[],
+    topCoins: [] as TopCoin[],
+    assets: [] as AssetData[], // Add this line
+    portfolioStats: {
+      allTimeProfit: undefined,
+      bestPerformer: undefined,
+      worstPerformer: undefined,
+    },
+  });
+  // UI state
+  const [selectedTab, setSelectedTab] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState<TopCoin | null>(null);
   const [chartLoaded, setChartLoaded] = useState(false);
-
   const [itemTypeTab, setItemTypeTab] = useState(0); // 0 = Coin, 1 = DEX Pair
+
+  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState(0);
-  const [selectedCoinId, setSelectedCoinId] = useState<string>("");
   const [quantity, setQuantity] = useState("");
   const [pricePerCoin, setPricePerCoin] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
-  const [selectedTab, setSelectedTab] = useState(0);
+
+  // Loading state - single object to reduce re-renders
+  // In the loading state object
+  const [loading, setLoading] = useState({
+    initial: true,
+    transactions: true,
+    userDetails: true,
+    portfolioStats: true,
+    assets: true, // Add this line
+    chartLoaded: false,
+  });
 
   const tabs = ["Assets", "Transactions", "Market"];
-  const isAddTransactionDisabled =
-    !selectedCoinId || !quantity || !pricePerCoin || !dateTime;
 
+  // API fetch functions
+  const fetchData = useCallback(async () => {
+    if (!user?.user_id || !isInitialized) return;
+
+    try {
+      // Start all fetches in parallel
+      const fetchPromises = [];
+
+      // 1. Fetch static data (if not cached)
+      if (!dataCache.coins) {
+        fetchPromises.push(
+          getAllCoins().then((coins) => {
+            dataCache.coins = coins;
+            setData((prev) => ({ ...prev, coins: coins || [] }));
+          })
+        );
+      } else {
+        setData((prev) => ({ ...prev, coins: dataCache.coins || [] }));
+      }
+
+      if (!dataCache.dexPairs) {
+        fetchPromises.push(
+          getDexPairs().then((pairs) => {
+            dataCache.dexPairs = pairs;
+            setData((prev) => ({ ...prev, dexPairs: pairs || [] }));
+          })
+        );
+      } else {
+        setData((prev) => ({ ...prev, dexPairs: dataCache.dexPairs || [] }));
+      }
+
+      if (!dataCache.topCoins) {
+        fetchPromises.push(
+          fetch("/api/coins/top")
+            .then((res) => res.json())
+            .then((coins) => {
+              dataCache.topCoins = coins;
+              setData((prev) => ({ ...prev, topCoins: coins }));
+
+              // Set Bitcoin as default selected coin
+              const bitcoin =
+                coins.find((coin: TopCoin) => coin.symbol === "BTC") ||
+                coins[0];
+              setSelectedCoin(bitcoin);
+
+              // Simulate chart loading
+              setTimeout(() => {
+                setChartLoaded(true);
+                setLoading((prev) => ({ ...prev, chartLoaded: true }));
+              }, 800);
+            })
+        );
+      } else {
+        setData((prev) => ({ ...prev, topCoins: dataCache.topCoins || [] }));
+        const bitcoin =
+          dataCache.topCoins?.find((coin) => coin.symbol === "BTC") ||
+          dataCache.topCoins?.[0];
+        setSelectedCoin(bitcoin || null);
+
+        setTimeout(() => {
+          setChartLoaded(true);
+          setLoading((prev) => ({ ...prev, chartLoaded: true }));
+        }, 100);
+      }
+
+      // 2. Fetch user-specific data
+      fetchPromises.push(
+        getTransactions(user.user_id).then((transactions) => {
+          setData((prev) => ({ ...prev, transactions: transactions || [] }));
+          setLoading((prev) => ({ ...prev, transactions: false }));
+
+          // Only fetch portfolio stats if we have transactions
+          if (transactions && transactions.length > 0) {
+            return Promise.all([
+              getAllTimeProfit(user.user_id),
+              getBestPerformer(user.user_id),
+              getWorstPerformer(user.user_id),
+            ]).then(([allTimeProfit, bestPerformer, worstPerformer]) => {
+              setData((prev) => ({
+                ...prev,
+                portfolioStats: {
+                  allTimeProfit: allTimeProfit.results,
+                  bestPerformer: bestPerformer.results,
+                  worstPerformer: worstPerformer.results,
+                },
+              }));
+              setLoading((prev) => ({ ...prev, portfolioStats: false }));
+            });
+          }
+          return null;
+        })
+      );
+
+      fetchPromises.push(
+        getUserDetails(user.user_id).then((details) => {
+          setData((prev) => ({ ...prev, userDetails: details }));
+          setLoading((prev) => ({ ...prev, userDetails: false }));
+        })
+      );
+
+      // Inside fetchData function, add this to the fetchPromises array
+      fetchPromises.push(
+        getAssets(user.user_id)
+          .then((data) => {
+            setData((prev) => ({ ...prev, assets: data.results || [] }));
+            setLoading((prev) => ({ ...prev, assets: false }));
+          })
+          .catch((err) => {
+            console.error("Error fetching assets:", err);
+            setData((prev) => ({ ...prev, assets: [] }));
+            setLoading((prev) => ({ ...prev, assets: false }));
+          })
+      );
+
+      // Wait for all fetches to complete
+      await Promise.all(fetchPromises);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading((prev) => ({ ...prev, initial: false }));
+    }
+  }, [user, isInitialized]);
+
+  // Refresh data function - for after adding transactions
+  const refreshUserData = useCallback(async () => {
+    if (!user?.user_id) return;
+
+    try {
+      // Inside refreshUserData function, update the Promise.all to include assets
+      const [transactions, userDetails, assets] = await Promise.all([
+        getTransactions(user.user_id),
+        getUserDetails(user.user_id),
+        getAssets(user.user_id).then((data) => data.results || []),
+      ]);
+
+      // Then update the setData call
+      setData((prev) => ({
+        ...prev,
+        transactions: transactions || [],
+        userDetails,
+        assets: assets || [],
+      }));
+
+      // Only fetch portfolio stats if we have transactions
+      if (transactions && transactions.length > 0) {
+        const [allTimeProfit, bestPerformer, worstPerformer] =
+          await Promise.all([
+            getAllTimeProfit(user.user_id),
+            getBestPerformer(user.user_id),
+            getWorstPerformer(user.user_id),
+          ]);
+
+        setData((prev) => ({
+          ...prev,
+          portfolioStats: {
+            allTimeProfit: allTimeProfit.results,
+            bestPerformer: bestPerformer.results,
+            worstPerformer: worstPerformer.results,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error("Error refreshing user data:", err);
+    }
+  }, [user]);
+
+  // Initial data load - with debounce to prevent multiple calls
+  useEffect(() => {
+    if (user?.user_id && isInitialized) {
+      fetchData();
+    }
+  }, [fetchData, user, isInitialized]);
+
+  // Event handlers
   const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleTabChange = (e: React.SyntheticEvent, newValue: number) =>
+
+  const handleTabChange = (e: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
-  const handleModalTabChange = (e: React.SyntheticEvent, newValue: number) =>
-    setModalTab(newValue);
+  };
+
   const handleAssetBuySell = (asset: AssetData) => {
-    // 1) select the "Coin" tab
     setItemTypeTab(0);
-
-    // 2) force the modal into "Buy" or "Sell" if you like:
-    setModalTab(0); // 0 = Buy
-
-    // 3) prefill the dropdown and inputs:
-    // handleCoinChange(null, String(asset.coin_id ?? asset.contract_address)); // this drives your <TextField select value=…
+    setModalTab(0);
     setPricePerCoin(String(asset.current_price ?? 0));
     setQuantity(String(asset.holding_amount ?? ""));
-
-    // 4) reset date/time if you want
     setDateTime(new Date());
-
-    // 5) open the modal
     setIsModalOpen(true);
   };
 
-  // Memoize fetch functions to prevent unnecessary re-creation
-  const fetchTransactions = useCallback(async (userId: string) => {
-    setLoading((prev) => ({ ...prev, transactions: true }));
-    try {
-      const res = await getTransactions(userId);
-      setTransactions(res || []);
-      return res;
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-      setTransactions([]);
-      return [];
-    } finally {
-      setLoading((prev) => ({ ...prev, transactions: false }));
-    }
-  }, []);
-
-  const fetchUserDetails = useCallback(async (userId: string) => {
-    setLoading((prev) => ({ ...prev, userDetails: true }));
-    try {
-      const details = await getUserDetails(userId);
-      setUserDetails(details);
-      return details;
-    } catch (err) {
-      console.error("Error fetching user details:", err);
-      return null;
-    } finally {
-      setLoading((prev) => ({ ...prev, userDetails: false }));
-    }
-  }, []);
-
-  const fetchCoins = useCallback(async () => {
-    setLoading((prev) => ({ ...prev, coins: true }));
-    try {
-      const data = await getAllCoins();
-      setCoins(data || []);
-      return data;
-    } catch (err) {
-      console.error("Error fetching coins:", err);
-      setCoins([]);
-      return [];
-    } finally {
-      setLoading((prev) => ({ ...prev, coins: false }));
-    }
-  }, []);
-
-  const fetchDexPairs = useCallback(async () => {
-    setLoading((prev) => ({ ...prev, dexPairs: true }));
-    try {
-      const data = await getDexPairs();
-      setDexPairs(data || []);
-      return data;
-    } catch (err) {
-      console.error("Error fetching dex pairs:", err);
-      setDexPairs([]);
-      return [];
-    } finally {
-      setLoading((prev) => ({ ...prev, dexPairs: false }));
-    }
-  }, []);
-
-  const fetchPortfolioStats = useCallback(async (userId: string) => {
-    setLoading((prev) => ({ ...prev, portfolioStats: true }));
-    try {
-      const [allTimeProfit, bestPerformer, worstPerformer] = await Promise.all([
-        getAllTimeProfit(userId),
-        getBestPerformer(userId),
-        getWorstPerformer(userId),
-      ]);
-
-      setPortfolioStats({
-        allTimeProfit: allTimeProfit.results,
-        bestPerformer: bestPerformer.results,
-        worstPerformer: worstPerformer.results,
-      });
-    } catch (err) {
-      console.error("Error fetching portfolio stats:", err);
-    } finally {
-      setLoading((prev) => ({ ...prev, portfolioStats: false }));
-    }
-  }, []);
-
-  // New function to fetch top coins for Market tab
-  const fetchTopCoins = useCallback(async () => {
-    setLoading((prev) => ({ ...prev, topCoins: true }));
-    try {
-      const response = await fetch("/api/coins/top");
-      if (!response.ok) {
-        throw new Error("Failed to fetch top coins");
-      }
-      const data = await response.json();
-      setTopCoins(data);
-
-      // Set Bitcoin as the default selected coin
-      const bitcoin =
-        data.find((coin: TopCoin) => coin.symbol === "BTC") || data[0];
-      setSelectedCoin(bitcoin);
-
-      // Simulate chart loading
-      setTimeout(() => {
-        setChartLoaded(true);
-        setLoading((prev) => ({ ...prev, chartLoaded: true }));
-      }, 800);
-
-      return data;
-    } catch (err) {
-      console.error("Error fetching top coins:", err);
-      setTopCoins([]);
-      return [];
-    } finally {
-      setLoading((prev) => ({ ...prev, topCoins: false }));
-    }
-  }, []);
-
-  // Combined data fetching function
-  const fetchAllData = useCallback(async () => {
-    if (!user?.user_id || !isInitialized) return;
-
-    // Fetch static data that doesn't depend on user
-    const [coinsData, dexData, topCoinsData] = await Promise.all([
-      fetchCoins(),
-      fetchDexPairs(),
-      fetchTopCoins(),
-    ]);
-
-    // Fetch user-specific data
-    const [txData, userData] = await Promise.all([
-      fetchTransactions(user.user_id),
-      fetchUserDetails(user.user_id),
-    ]);
-
-    // Once we have transactions, fetch portfolio stats
-    if (txData && txData.length > 0) {
-      await fetchPortfolioStats(user.user_id);
-    }
-  }, [
-    user,
-    isInitialized,
-    fetchCoins,
-    fetchDexPairs,
-    fetchTransactions,
-    fetchUserDetails,
-    fetchPortfolioStats,
-    fetchTopCoins,
-  ]);
-
-  // Initial data load
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
-
-  // Refresh portfolio stats when transactions change
-  useEffect(() => {
-    if (user?.user_id && transactions.length > 0) {
-      fetchPortfolioStats(user.user_id);
-    }
-  }, [user?.user_id, transactions, fetchPortfolioStats]);
-
-  const handleCoinChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-    // e: React.ChangeEvent<HTMLInputElement> | null = null,
-    // selected: string | null = null
-  ) => {
-    // let tab = itemTypeTab;
-    // if (selected && !parseInt(selected, 10)) {
-    //   tab = 1;
-    //   setItemTypeTab(tab);
-    // } else if (selected) {
-    //   tab = 0;
-    //   setItemTypeTab(tab);
-    // } else selected = e!.target.value;
-    // if (tab === 0) {
-    //   const coinObj = coins.find((c) => c.coin_id === selected);
-    //   if (coinObj) {
-    //     setSelectedCoin(
-    //       itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected
-    //     );
-    //     setPricePerCoin(coinObj.marketprice);
-    //   }
-    // } else {
-    //   const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
-    //   if (dexPairObj) {
-    //     setSelectedCoin(dexPairObj);
-    //     setPricePerCoin(dexPairObj.price);
-    //   }
-    // }
-    const selected = e.target.value;
-    setSelectedCoinId(selected); // Set the selectedCoinId correctly
-
-    // Update price per coin based on the selected item type
-    if (itemTypeTab === 0) {
-      const coinObj = coins.find((c) => c.coin_id === selected);
-      if (coinObj) {
-        setPricePerCoin(coinObj.marketprice);
-      }
-    } else {
-      const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
-      if (dexPairObj) {
-        setPricePerCoin(dexPairObj.price);
-      }
-    }
-  };
-
-  // Handler for changing selected coin in Market tab
   const handleMarketCoinChange = (event: SelectChangeEvent<string>) => {
     const coinId = event.target.value as string;
-    const coin = topCoins.find((c) => c.coin_id.toString() === coinId);
+    const coin = data.topCoins.find((c) => c.coin_id.toString() === coinId);
     if (coin) {
       setSelectedCoin(coin);
       setChartLoaded(false);
-      setTimeout(() => setChartLoaded(true), 800);
+      setTimeout(() => setChartLoaded(true), 300);
     }
   };
 
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/^\d*\.?\d*$/.test(val)) setQuantity(val);
-  };
+  // Process transactions for display
+  const formattedTransactions = data.transactions.map((tx) => {
+    const coin = data.coins.find((c) => c.coin_id === tx.coin_id);
+    const dex = data.dexPairs.find(
+      (d) => d.contract_address === tx.contract_address
+    );
+    return {
+      id: String(tx.transaction_id || ""),
+      Type: tx.transaction_type,
+      Name_of_Coin: coin?.coin_name || dex?.name,
+      Shorthand_Notation: coin?.symbol || dex?.base_asset_symbol,
+      Date_and_Time_of_Transaction: tx.date,
+      Price_at_Transaction: tx.price_per_coin,
+      Value_in_Dollars: tx.value,
+      Amount_of_Coin: tx.amount,
+    };
+  });
 
-  const handlePricePerCoinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/^\d*\.?\d*$/.test(val)) setPricePerCoin(val);
-  };
-
-  const handleAddTransaction = async () => {
-    if (
-      !user?.user_id ||
-      !selectedCoinId ||
-      !quantity ||
-      !pricePerCoin ||
-      !dateTime
-    )
-      return;
-
-    try {
-      const transactionData: PortfolioTransaction = {
-        type: modalTab === 0 ? "Buy" : "Sell",
-        coin:
-          itemTypeTab === 0
-            ? selectedCoinId !== null
-              ? String(selectedCoinId)
-              : null
-            : null,
-        contract_address:
-          itemTypeTab === 1
-            ? selectedCoinId !== null
-              ? String(selectedCoinId)
-              : null
-            : null,
-        quantity: parseFloat(quantity),
-        pricePerCoin: parseFloat(pricePerCoin),
-        dateTime: dateTime.toISOString(),
-        total: parseFloat(quantity) * parseFloat(pricePerCoin),
-      };
-
-      await sendTransactionData(transactionData, user.user_id);
-
-      // Refresh only necessary data after adding a transaction
-      await fetchTransactions(user.user_id);
-      await fetchUserDetails(user.user_id);
-
-      handleCloseModal();
-      setSelectedCoinId("");
-      setQuantity("");
-      setPricePerCoin("");
-      setDateTime(new Date());
-    } catch (err) {
-      console.error("Error adding transaction:", err);
-    }
-  };
-
-  const formattedTransactions: any[] = Array.isArray(transactions)
-    ? transactions.map((tx) => {
-        const coin = coins.find((c) => c.coin_id === tx.coin_id);
-        const dex = dexPairs.find(
-          (d) => d.contract_address === tx.contract_address
-        );
-        return {
-          id: String(tx.transaction_id || ""),
-          Type: tx.transaction_type,
-          Name_of_Coin: coin?.coin_name || dex?.name,
-          Shorthand_Notation: coin?.symbol || dex?.base_asset_symbol,
-          Date_and_Time_of_Transaction: tx.date,
-          Price_at_Transaction: tx.price_per_coin,
-          Value_in_Dollars: tx.value,
-          Amount_of_Coin: tx.amount,
-        };
-      })
-    : [];
+  // Show loading state if initial data isn't ready
+  if (loading.initial) {
+    return (
+      <Container sx={{ py: 4, textAlign: "center" }}>
+        <Typography variant="h5">Loading portfolio data...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -429,26 +337,12 @@ const HomePage: React.FC = () => {
                 fontWeight={500}
                 sx={{ color: "#616e85", fontSize: "24px" }}
               >
-                {userDetails?.first_name} {userDetails?.last_name}'s Portfolio
+                {data.userDetails?.first_name} {data.userDetails?.last_name}'s
+                Portfolio
               </Typography>
               <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
-                ${userDetails?.total_value_now?.toFixed(2) || "0.00"}
+                ${data.userDetails?.total_value_now?.toFixed(2) || "0.00"}
               </Typography>
-              {/* <Typography
-                                      fontWeight={500}
-                                      sx={{
-                                        color:
-                                          portfolioStats.todayCondition?.net_change_24h ===
-                                            undefined ||
-                                          portfolioStats.todayCondition?.net_change_24h < 0
-                                            ? "#ea3943"
-                                            : "#16c784",
-                                        fontSize: "16px",
-                                      }}
-                                    >
-                                      {portfolioStats.todayCondition?.net_change_24h?.toFixed(2)}${" "}
-                                      {portfolioStats.todayCondition?.percentage_change_24h}% (24h)
-                                    </Typography> */}
             </Box>
           </Grid>
           <Grid
@@ -483,9 +377,9 @@ const HomePage: React.FC = () => {
         </Grid>
 
         <Performers
-          allTimeProfit={portfolioStats.allTimeProfit}
-          bestPerformer={portfolioStats.bestPerformer}
-          worstPerformer={portfolioStats.worstPerformer}
+          allTimeProfit={data.portfolioStats.allTimeProfit}
+          bestPerformer={data.portfolioStats.bestPerformer}
+          worstPerformer={data.portfolioStats.worstPerformer}
         />
         <Divider sx={{ width: "100%", mt: 2 }} />
 
@@ -495,169 +389,50 @@ const HomePage: React.FC = () => {
           ))}
         </Tabs>
 
-        {selectedTab === 0 && <Assets onBuySellClick={handleAssetBuySell} />}
+        {selectedTab === 0 && (
+          <Assets
+            onBuySellClick={handleAssetBuySell}
+            assets={data.assets}
+            loading={loading.assets}
+          />
+        )}
         {selectedTab === 1 && (
           <Transactions
             data={formattedTransactions}
-            onTransactionDeleted={() => fetchTransactions(user?.user_id || "")}
+            onTransactionDeleted={refreshUserData}
           />
         )}
         {selectedTab === 2 && (
           <MarketTab
             selectedTab={selectedTab}
-            loading={loading.topCoins}
+            loading={!dataCache.topCoins}
             selectedCoin={selectedCoin}
             isMobile={isMobile}
             isTablet={isTablet}
             handleMarketCoinChange={handleMarketCoinChange}
-            topCoins={topCoins}
+            topCoins={data.topCoins}
             chartLoaded={chartLoaded}
           />
         )}
-
-        <Modal open={isModalOpen} onClose={handleCloseModal}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: { xs: "90%", sm: "27rem" },
-              bgcolor: "white",
-              boxShadow: 24,
-              p: 4,
-              borderRadius: "15px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <Box display="flex" justifyContent="space-between">
-              <Typography variant="h6" fontWeight={600}>
-                Add Transaction
-              </Typography>
-              <IconButton onClick={handleCloseModal}>
-                <Close />
-              </IconButton>
-            </Box>
-
-            <Tabs
-              value={modalTab}
-              onChange={handleModalTabChange}
-              variant="fullWidth"
-            >
-              <Tab label="Buy" />
-              <Tab label="Sell" />
-            </Tabs>
-
-            <Box mt={2} display="flex" flexDirection="column" gap={2}>
-              <Tabs
-                value={itemTypeTab}
-                onChange={(_, v) => setItemTypeTab(v)}
-                variant="fullWidth"
-              >
-                <Tab label="Coin" />
-                <Tab label="DEX Pair" />
-              </Tabs>
-              <TextField
-                select
-                label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
-                value={selectedCoinId} // Changed from selectedCoin to selectedCoinId
-                onChange={(e) =>
-                  // handleCoinChange(e as ChangeEvent<HTMLInputElement>, null)
-                  handleCoinChange(e as ChangeEvent<HTMLInputElement>)
-                }
-                fullWidth
-                sx={textFieldSx}
-                InputProps={textFieldInputProps}
-              >
-                {itemTypeTab === 0
-                  ? coins.map((c) => (
-                      <MenuItem key={c.coin_id} value={String(c.coin_id)}>
-                        {`${c.coin_name} (${c.symbol})`}
-                      </MenuItem>
-                    ))
-                  : dexPairs.map((p) => (
-                      <MenuItem
-                        key={p.contract_address}
-                        value={p.contract_address}
-                      >
-                        {p.name}
-                      </MenuItem>
-                    ))}
-              </TextField>
-
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Quantity"
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                    fullWidth
-                    sx={textFieldSx}
-                    InputProps={textFieldInputProps}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Price per Coin"
-                    value={pricePerCoin}
-                    onChange={handlePricePerCoinChange}
-                    fullWidth
-                    sx={textFieldSx}
-                    InputProps={textFieldInputProps}
-                  />
-                </Grid>
-              </Grid>
-
-              <DemoItem>
-                <DateTimeField
-                  label="Transaction Date & Time"
-                  value={dayjs(dateTime)}
-                  onChange={(val) => setDateTime(val?.toDate() || new Date())}
-                  sx={textFieldSx}
-                  InputProps={textFieldInputProps}
-                />
-              </DemoItem>
-
-              <Box
-                sx={{
-                  backgroundColor: "#f8fafc",
-                  borderRadius: "12px",
-                  p: 2,
-                  mt: 1,
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                <Typography sx={{ color: "#64748b", fontSize: "14px" }}>
-                  {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: "24px", fontWeight: 700, color: "#0f172a" }}
-                >
-                  ${(Number(quantity) * Number(pricePerCoin)).toFixed(4)}
-                </Typography>
-              </Box>
-
-              <Button
-                variant="contained"
-                fullWidth
-                disabled={isAddTransactionDisabled}
-                onClick={handleAddTransaction}
-                sx={{
-                  height: "3rem",
-                  borderRadius: "10px",
-                  fontWeight: 600,
-                  fontSize: "16px",
-                  backgroundColor: "#3b82f6",
-                  ":hover": {
-                    backgroundColor: "#2563eb",
-                  },
-                }}
-              >
-                Add Transaction
-              </Button>
-            </Box>
-          </Box>
-        </Modal>
+        <TransactionModal
+          quantity={quantity}
+          pricePerCoin={pricePerCoin}
+          dateTime={dateTime}
+          setModalTab={setModalTab}
+          setIsModalOpen={setIsModalOpen}
+          itemTypeTab={itemTypeTab}
+          coins={data.coins}
+          dexPairs={data.dexPairs}
+          setPricePerCoin={setPricePerCoin}
+          setQuantity={setQuantity}
+          modalTab={modalTab}
+          user={user}
+          fetchTransactions={refreshUserData}
+          fetchUserDetails={refreshUserData}
+          setDateTime={setDateTime}
+          isModalOpen={isModalOpen}
+          setItemTypeTab={setItemTypeTab}
+        />
       </Container>
     </LocalizationProvider>
   );
