@@ -3,6 +3,7 @@ import { formatNumber } from '@/utils/allCurrencies';
 import { Box, TableCell, TableRow, Typography } from '@mui/material';
 import React from 'react'
 
+// eslint-disable-next-line react/display-name
 const DexExchangeRow = React.memo(({ exchange }: { exchange: DexExchange }) => (
   <TableRow hover>
     <TableCell component="th" scope="row">
