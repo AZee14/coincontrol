@@ -337,29 +337,36 @@ const HomePage: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container>
-        <Grid container>
-          <Grid item xs={6}>
-            <Box textAlign="left">
+      <Container sx={{ px: { xs: 2, sm: 4, md: 6 }, py: 4 }}>
+        <Grid
+          container
+          spacing={2}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Grid item xs={12} sm={6}>
+            <Box textAlign={{ xs: "center", sm: "left" }}>
               <Typography
                 fontWeight={500}
-                sx={{ color: "#616e85", fontSize: "24px" }}
+                sx={{ color: "#616e85", fontSize: { xs: "20px", sm: "24px" } }}
               >
-                {data.userDetails?.first_name} {data.userDetails?.last_name}'s
-                Portfolio
+                My Portfolio
               </Typography>
-              <Typography fontWeight={700} sx={{ fontSize: "32px" }}>
-                ${data.userDetails?.total_value_now?.toFixed(2) || "0.00"}
+              <Typography
+                fontWeight={700}
+                sx={{ fontSize: { xs: "28px", sm: "32px" } }}
+              >
+                $12,345.67
               </Typography>
             </Box>
           </Grid>
           <Grid
             item
-            xs={6}
+            xs={12}
+            sm={6}
             sx={{
               display: "flex",
-              justifyContent: "flex-end",
-              alignItems: "center",
+              justifyContent: { xs: "center", sm: "flex-end" },
             }}
           >
             <Button

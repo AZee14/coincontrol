@@ -48,11 +48,6 @@ const navigationLinks = [
   { name: "About", href: "/about", icon: <Info size={18} /> },
 ];
 
-const settings = [
-  { name: "Profile", href: "/profile" },
-  { name: "Settings", href: "/settings" },
-];
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -706,28 +701,6 @@ function AppBar() {
                     <MenuList sx={{ py: 0.5 }}>
                       {isLoggedIn ? (
                         <>
-                          {settings.map((setting) => (
-                            <MenuItem
-                              key={setting.name}
-                              component={Link}
-                              href={setting.href}
-                              onClick={handleCloseUserMenu}
-                              sx={{
-                                py: 1.5,
-                                px: 2,
-                                borderRadius: "4px",
-                                mx: 0.5,
-                                my: 0.25,
-                              }}
-                            >
-                              <Typography variant="body2">
-                                {setting.name}
-                              </Typography>
-                            </MenuItem>
-                          ))}
-
-                          <Divider sx={{ my: 0.75 }} />
-
                           <MenuItem
                             onClick={(event) => {
                               handleCloseUserMenu();

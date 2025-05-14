@@ -135,7 +135,7 @@ export async function GET(req: Request) {
         current_price: dex.price,
         hourly_change: dex.percent_change_price_1h,
         daily_change: dex.percent_change_price_24h,
-        weekly_change: dex.percent_change_price_24h, // Placeholder for weekly
+        weekly_change: dex.percent_change_price_24h, // Placeholder
       });
     });
 
@@ -153,7 +153,7 @@ export async function GET(req: Request) {
         contract_address: meta.contract_address || null,
         name: meta.name || "Unknown",
         shorthand: meta.shorthand || "N/A",
-        current_price: meta.current_price.toFixed(5) || 0,
+        current_price: Number(meta.current_price.toFixed(5)) || 0,
         hourly_change: meta.hourly_change || 0,
         daily_change: meta.daily_change || 0,
         weekly_change: meta.weekly_change || 0,
@@ -164,6 +164,9 @@ export async function GET(req: Request) {
         profit_loss_percentage: Number(profitLossPercentage.toFixed(2)),
       };
     });
+
+    // Sort by holding_value descending
+    results.sort((a, b) => b.holding_value - a.holding_value);
 
     return NextResponse.json({ results });
   } catch (error: any) {

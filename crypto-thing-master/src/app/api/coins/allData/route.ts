@@ -14,8 +14,9 @@ export async function GET() {
     const { data, error } = await supabase
       .from("coins")
       .select(
-        "coin_id, coin_name, symbol, marketprice,marketcap,trading_volume_24h,volume24h,volume1h,volume7d,circulatingsupply"
-      );
+      "coin_id, coin_name, symbol, marketprice,marketcap,trading_volume_24h,volume24h,volume1h,volume7d,circulatingsupply"
+      )
+      .order("marketcap", { ascending: false });
 
     if (error) throw error;
 
