@@ -10,7 +10,10 @@ const supabase = createClient(
 
 export async function GET() {
   // We SELECT only the columns we need, plus the joined dex_exchanges.name
-  const { data, error } = await supabase.from("dex_pairs").select(`
+  const { data, error } = await supabase
+    .from("dex_pairs")
+    .select(
+      `
       name,
       contract_address,
       liquidity,
@@ -21,8 +24,9 @@ export async function GET() {
       dex_exchanges!inner (
         name
       )
-    `);
-
+    `
+    )
+    .order("volume_24h", { ascending: false });
   if (error) {
     console.error("Error fetching dex pairs:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

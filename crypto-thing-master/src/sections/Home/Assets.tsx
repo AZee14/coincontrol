@@ -9,14 +9,13 @@ import {
   CircularProgress,
   Box,
   Button,
+  TableContainer,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { useStytchUser } from "@stytch/nextjs";
 import { createClient } from "@supabase/supabase-js";
-import { getAssets } from "@/utils/user";
-import { getDexExchanges } from "@/utils/dex";
 
 // Define the type for asset data
 export interface AssetData {
@@ -95,8 +94,8 @@ function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: Ass
   }
 
   return (
-    <Table>
-      <TableHead>
+    <TableContainer component={Box} sx={{ overflowX: "auto" }}>
+      <Table sx={{minWidth:650}}>      <TableHead>
         <TableRow>
           <TableCell sx={{ width: "25%" }}>
             <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
@@ -304,6 +303,7 @@ function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: Ass
         </TableBody>
       )}
     </Table>
+    </TableContainer>
   );
 }
 

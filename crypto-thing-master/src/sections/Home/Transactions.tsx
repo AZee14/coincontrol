@@ -5,6 +5,8 @@ import {
   TableRow,
   Typography,
   TableBody,
+  TableContainer,
+  Box
 } from "@mui/material";
 import React from "react";
 import { makeStyles } from "@mui/styles";
@@ -52,6 +54,8 @@ const Transactions: React.FC<TransactionsProps> = ({
   };
 
   return (
+        <TableContainer component={Box} sx={{ overflowX: "auto" }}>
+      <Table sx={{minWidth:650}}></Table>
     <Table>
       <TableHead>
         <TableRow>
@@ -138,6 +142,7 @@ const Transactions: React.FC<TransactionsProps> = ({
         </TableBody>
       )}
     </Table>
+    </TableContainer>
   );
 };
 

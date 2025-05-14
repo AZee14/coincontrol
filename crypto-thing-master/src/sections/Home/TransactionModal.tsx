@@ -6,20 +6,21 @@ import {
   Button,
   Grid,
   IconButton,
-  MenuItem,
   Modal,
   Tab,
   Tabs,
-  TextField,
   Typography,
+  useTheme,
+  useMediaQuery,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import { DateTimeField } from "@mui/x-date-pickers";
 import { DemoItem } from "@mui/x-date-pickers/internals/demo";
-import React, { ChangeEvent, useMemo, useCallback } from "react";
+import React, { ChangeEvent, useState, useMemo, useCallback } from "react";
 import { textFieldInputProps, textFieldSx } from "./styles";
 import dayjs from "dayjs";
 
-// Define proper types for the component props
 interface TransactionModalProps {
   quantity: string;
   pricePerCoin: string;
@@ -40,7 +41,7 @@ interface TransactionModalProps {
   setItemTypeTab: (tab: number) => void;
 }
 
-function TransactionModal({
+const TransactionModal: React.FC<TransactionModalProps> = React.memo(({ 
   quantity,
   pricePerCoin,
   dateTime,
@@ -58,116 +59,60 @@ function TransactionModal({
   setDateTime,
   isModalOpen,
   setItemTypeTab,
-}: TransactionModalProps) {
-  // Use React state from parent component instead of local state
-  const selectedCoinId = useMemo(() => {
-    // Extract the selected coin ID from the available data
-    if (itemTypeTab === 0 && coins.length > 0) {
-      // Find a coin that matches the current price
-      const matchedCoin = coins.find((c) => c.marketprice === pricePerCoin);
-      return matchedCoin ? String(matchedCoin.coin_id) : "";
-    } else if (itemTypeTab === 1 && dexPairs.length > 0) {
-      // Find a DEX pair that matches the current price
-      const matchedPair = dexPairs.find((d) => d.price === pricePerCoin);
-      return matchedPair ? matchedPair.contract_address : "";
+}) => {
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Local state to keep selected option stable
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+  // Update selectedItem if pricePerCoin or itemTypeTab changes externally
+  useMemo(() => {
+    if (itemTypeTab === 0) {
+      const match = coins.find(c => String(c.marketprice) === pricePerCoin);
+      setSelectedItem(match || null);
+    } else {
+      const match = dexPairs.find(d => String(d.price) === pricePerCoin);
+      setSelectedItem(match || null);
     }
-    return "";
-  }, [itemTypeTab, coins, dexPairs, pricePerCoin]);
+  }, [pricePerCoin, itemTypeTab, coins, dexPairs]);
 
-  // Computed value instead of state
   const isAddTransactionDisabled =
-    !selectedCoinId || !quantity || !pricePerCoin || !dateTime;
+    !selectedItem || !quantity || !pricePerCoin || !dateTime;
 
-  // Calculate total amount once
-  const totalAmount = useMemo(() => {
-    return (Number(quantity) * Number(pricePerCoin)).toFixed(4);
-  }, [quantity, pricePerCoin]);
+  const totalAmount = useMemo(() =>
+    (Number(quantity) * Number(pricePerCoin)).toFixed(4)
+  , [quantity, pricePerCoin]);
 
-  // Event handlers with useCallback to prevent unnecessary re-renders
   const handleModalTabChange = useCallback(
-    (e: React.SyntheticEvent, newValue: number) => {
-      setModalTab(newValue);
-    },
+    (_: React.SyntheticEvent, newValue: number) => setModalTab(newValue),
     [setModalTab]
   );
+  const handleCloseModal = useCallback(() => setIsModalOpen(false), [setIsModalOpen]);
 
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-  }, [setIsModalOpen]);
-
-  const handleCoinChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const selected = e.target.value;
-
-      // Update price per coin based on the selected item type
+  const handleOptionChange = useCallback(
+    (_: any, value: any) => {
+      setSelectedItem(value);
+      if (!value) {
+        setPricePerCoin("");
+        return;
+      }
       if (itemTypeTab === 0) {
-        const coinObj = coins.find((c) => String(c.coin_id) === selected);
-        if (coinObj) {
-          setPricePerCoin(coinObj.marketprice);
-        }
+        setPricePerCoin(value.marketprice);
       } else {
-        const dexPairObj = dexPairs.find(
-          (d) => d.contract_address === selected
-        );
-        if (dexPairObj) {
-          setPricePerCoin(dexPairObj.price);
-        }
+        setPricePerCoin(value.price);
       }
     },
-    [itemTypeTab, coins, dexPairs, setPricePerCoin]
+    [itemTypeTab, setPricePerCoin]
   );
-
-  // const handleCoinChange = (
-  //   e: React.ChangeEvent<HTMLInputElement>
-  //   // e: React.ChangeEvent<HTMLInputElement> | null = null,
-  //   // selected: string | null = null
-  // ) => {
-  //   // let tab = itemTypeTab;
-  //   // if (selected && !parseInt(selected, 10)) {
-  //   //   tab = 1;
-  //   //   setItemTypeTab(tab);
-  //   // } else if (selected) {
-  //   //   tab = 0;
-  //   //   setItemTypeTab(tab);
-  //   // } else selected = e!.target.value;
-  //   // if (tab === 0) {
-  //   //   const coinObj = coins.find((c) => c.coin_id === selected);
-  //   //   if (coinObj) {
-  //   //     setSelectedCoin(
-  //   //       itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected
-  //   //     );
-  //   //     setPricePerCoin(coinObj.marketprice);
-  //   //   }
-  //   // } else {
-  //   //   const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
-  //   //   if (dexPairObj) {
-  //   //     setSelectedCoin(dexPairObj);
-  //   //     setPricePerCoin(dexPairObj.price);
-  //   //   }
-  //   // }
-  //   const selected = e.target.value;
-  //   setSelectedCoinId(selected); // Set the selectedCoinId correctly
-
-  //   // Update price per coin based on the selected item type
-  //   if (itemTypeTab === 0) {
-  //     const coinObj = coins.find((c: any) => c.coin_id === selected);
-  //     if (coinObj) {
-  //       setPricePerCoin(coinObj.marketprice);
-  //     }
-  //   } else {
-  //     const dexPairObj = dexPairs.find(
-  //       (d: any) => d.contract_address === selected
-  //     );
-  //     if (dexPairObj) {
-  //       setPricePerCoin(dexPairObj.price);
-  //     }
-  //   }
-  // };
 
   const handleQuantityChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
-      if (/^\d*\.?\d*$/.test(val)) setQuantity(val);
+      if (/^\d*\.?\d*$/.test(val)) {
+        setQuantity(val);
+        setSelectedItem(null); // clear selection if manual override
+      }
     },
     [setQuantity]
   );
@@ -175,7 +120,10 @@ function TransactionModal({
   const handlePricePerCoinChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
-      if (/^\d*\.?\d*$/.test(val)) setPricePerCoin(val);
+      if (/^\d*\.?\d*$/.test(val)) {
+        setPricePerCoin(val);
+        setSelectedItem(null);
+      }
     },
     [setPricePerCoin]
   );
@@ -183,50 +131,38 @@ function TransactionModal({
   const handleItemTypeChange = useCallback(
     (_: any, value: number) => {
       setItemTypeTab(value);
-      // Reset selection when switching type
       setPricePerCoin("");
+      setSelectedItem(null);
     },
     [setItemTypeTab, setPricePerCoin]
   );
 
-  // In TransactionModal.tsx, modify the handleAddTransaction function:
-
   const handleAddTransaction = useCallback(async () => {
-    if (!selectedCoinId || !quantity || !pricePerCoin || !dateTime) return;
-
-    // Close modal immediately
+    if (!selectedItem || !quantity || !pricePerCoin || !dateTime) return;
     handleCloseModal();
-
     try {
       const transactionData: PortfolioTransaction = {
         type: modalTab === 0 ? "Buy" : "Sell",
-        coin: itemTypeTab === 0 ? selectedCoinId : null,
-        contract_address: itemTypeTab === 1 ? selectedCoinId : null,
+        coin: itemTypeTab === 0 ? String(selectedItem.coin_id) : null,
+        contract_address: itemTypeTab === 1 ? selectedItem.contract_address : null,
         quantity: parseFloat(quantity),
         pricePerCoin: parseFloat(pricePerCoin),
         dateTime: dateTime.toISOString(),
         total: parseFloat(quantity) * parseFloat(pricePerCoin),
       };
-
-      // Reset form
       setPricePerCoin("");
       setQuantity("");
       setDateTime(new Date());
-
-      // Process transaction in the background
       await sendTransactionData(transactionData, user.user_id);
-
-      // Refresh only necessary data after adding a transaction
       await Promise.all([
         fetchTransactions(user.user_id),
         fetchUserDetails(user.user_id),
       ]);
     } catch (err) {
       console.error("Error adding transaction:", err);
-      // Consider adding a toast notification here to inform the user if the transaction failed
     }
   }, [
-    selectedCoinId,
+    selectedItem,
     quantity,
     pricePerCoin,
     dateTime,
@@ -241,45 +177,31 @@ function TransactionModal({
     setDateTime,
   ]);
 
-  // Memoize dropdown options
-  const dropdownOptions = useMemo(() => {
-    if (itemTypeTab === 0) {
-      return coins.map((c) => (
-        <MenuItem key={c.coin_id} value={String(c.coin_id)}>
-          {`${c.coin_name} (${c.symbol})`}
-        </MenuItem>
-      ));
-    } else {
-      return dexPairs.map((p) => (
-        <MenuItem key={p.contract_address} value={p.contract_address}>
-          {p.name}
-        </MenuItem>
-      ));
-    }
-  }, [itemTypeTab, coins, dexPairs]);
+  const options = itemTypeTab === 0 ? coins : dexPairs;
+  const getOptionLabel = (option: any) =>
+    itemTypeTab === 0
+      ? `${option.coin_name} (${option.symbol})`
+      : option.name;
 
   return (
-    <Modal
-      open={isModalOpen}
-      onClose={handleCloseModal}
-      keepMounted={false} // Improve performance by unmounting when closed
-    >
+    <Modal open={isModalOpen} onClose={handleCloseModal}>
       <Box
         sx={{
           position: "absolute",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: { xs: "90%", sm: "27rem" },
-          bgcolor: "white",
+          width: { xs: '95%', sm: '27rem' },
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          bgcolor: 'background.paper',
           boxShadow: 24,
-          p: 4,
-          borderRadius: "15px",
-          border: "1px solid #e5e7eb",
+          p: { xs: 2, sm: 4 },
+          borderRadius: 2,
         }}
       >
-        <Box display="flex" justifyContent="space-between">
-          <Typography variant="h6" fontWeight={600}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant={isSmall ? 'h6' : 'h5'} fontWeight={600}>
             Add Transaction
           </Typography>
           <IconButton onClick={handleCloseModal}>
@@ -291,6 +213,7 @@ function TransactionModal({
           value={modalTab}
           onChange={handleModalTabChange}
           variant="fullWidth"
+          sx={{ mt: 2 }}
         >
           <Tab label="Buy" />
           <Tab label="Sell" />
@@ -305,20 +228,33 @@ function TransactionModal({
             <Tab label="Coin" />
             <Tab label="DEX Pair" />
           </Tabs>
-          <TextField
-            select
-            label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
-            value={selectedCoinId}
-            onChange={handleCoinChange}
-            fullWidth
-            sx={textFieldSx}
-            InputProps={textFieldInputProps}
-          >
-            {dropdownOptions}
-          </TextField>
+
+          <Autocomplete
+            options={options}
+            value={selectedItem}
+            onChange={handleOptionChange}
+            getOptionLabel={getOptionLabel}
+            isOptionEqualToValue={(opt, val) =>
+              itemTypeTab === 0
+                ? opt.coin_id === val.coin_id
+                : opt.contract_address === val.contract_address
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={itemTypeTab === 0 ? 'Select Coin' : 'Select DEX Pair'}
+                fullWidth
+                sx={textFieldSx}
+                InputProps={{
+                  ...params.InputProps,
+                  ...textFieldInputProps,
+                }}
+              />
+            )}
+          />
 
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Quantity"
                 value={quantity}
@@ -328,7 +264,7 @@ function TransactionModal({
                 InputProps={textFieldInputProps}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Price per Coin"
                 value={pricePerCoin}
@@ -345,6 +281,7 @@ function TransactionModal({
               label="Transaction Date & Time"
               value={dayjs(dateTime)}
               onChange={(val) => setDateTime(val?.toDate() || new Date())}
+              fullWidth
               sx={textFieldSx}
               InputProps={textFieldInputProps}
             />
@@ -352,19 +289,16 @@ function TransactionModal({
 
           <Box
             sx={{
-              backgroundColor: "#f8fafc",
-              borderRadius: "12px",
+              backgroundColor: 'grey.100',
+              borderRadius: 1,
               p: 2,
               mt: 1,
-              border: "1px solid #e2e8f0",
             }}
           >
-            <Typography sx={{ color: "#64748b", fontSize: "14px" }}>
-              {modalTab === 0 ? "Total Spent ($)" : "Total Received ($)"}
+            <Typography variant="body2" color="textSecondary">
+              {modalTab === 0 ? 'Total Spent ($)' : 'Total Received ($)'}
             </Typography>
-            <Typography
-              sx={{ fontSize: "24px", fontWeight: 700, color: "#0f172a" }}
-            >
+            <Typography variant="h6" fontWeight={700}>
               ${totalAmount}
             </Typography>
           </Box>
@@ -374,16 +308,7 @@ function TransactionModal({
             fullWidth
             disabled={isAddTransactionDisabled}
             onClick={handleAddTransaction}
-            sx={{
-              height: "3rem",
-              borderRadius: "10px",
-              fontWeight: 600,
-              fontSize: "16px",
-              backgroundColor: "#3b82f6",
-              ":hover": {
-                backgroundColor: "#2563eb",
-              },
-            }}
+            sx={{ height: 48, borderRadius: 1 }}
           >
             Add Transaction
           </Button>
@@ -391,6 +316,6 @@ function TransactionModal({
       </Box>
     </Modal>
   );
-}
+});
 
-export default React.memo(TransactionModal);
+export default TransactionModal;
