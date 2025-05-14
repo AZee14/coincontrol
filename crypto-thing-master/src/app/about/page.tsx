@@ -589,7 +589,6 @@ export default function AboutPage() {
           <Link href="/" style={{ color: '#0074e4', textDecoration: 'none' }}>Home</Link>
           <Link href="/about" style={{ color: '#0074e4', textDecoration: 'none' }}>About</Link>
           <Link href="/login" style={{ color: '#0074e4', textDecoration: 'none' }}>Login</Link>
-          <Link href="/coins" style={{ color: '#0074e4', textDecoration: 'none' }}>Market</Link>
         </Box>
       </Box>
     </Container>

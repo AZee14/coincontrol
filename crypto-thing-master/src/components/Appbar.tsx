@@ -130,7 +130,7 @@ function AppBar() {
       });
   };
 
-  const fetchNotis = () => {
+  const fetchNotis = React.useCallback(() => {
     if (!user?.user_id) return;
 
     setNotificationLoading(true);
@@ -146,7 +146,7 @@ function AppBar() {
         setNotifs(data || []);
         setNotificationLoading(false);
       });
-  };
+  }, [user?.user_id]);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(anchorElNav ? null : event.currentTarget);
@@ -196,7 +196,7 @@ function AppBar() {
     }, NOTIFICATION_CHECK_TIME);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotis]);
 
   React.useEffect(() => {
     startAssetNotificationChecker(supabase);
