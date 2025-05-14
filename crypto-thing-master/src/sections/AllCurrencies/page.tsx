@@ -164,6 +164,7 @@ const CoinsTable = React.memo(({ data }: { data: CoinItem[] }) => (
     </Table>
   </TableContainer>
 ));
+CoinsTable.displayName = "CoinsTable";
 
 const DexPairsTable = React.memo(({ data }: { data: DexPairItem[] }) => (
   <TableContainer component={Paper} elevation={0}>
@@ -197,6 +198,7 @@ const DexPairsTable = React.memo(({ data }: { data: DexPairItem[] }) => (
     </Table>
   </TableContainer>
 ));
+DexPairsTable.displayName = "DexPairsTable";
 
 const DexExchangesTable = React.memo(({ data }: { data: DexExchange[] }) => (
   <TableContainer component={Paper} elevation={0}>
@@ -228,6 +230,7 @@ const DexExchangesTable = React.memo(({ data }: { data: DexExchange[] }) => (
     </Table>
   </TableContainer>
 ));
+DexExchangesTable.displayName = "DexExchangesTable";
 
 // Create a cache object outside of the component
 const dataCache = {

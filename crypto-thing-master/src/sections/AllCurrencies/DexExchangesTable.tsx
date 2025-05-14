@@ -128,4 +128,6 @@ const DexExchangesTable: FC<DexExchangesTableProps> = React.memo(({ data }) => {
   );
 });
 
+DexExchangesTable.displayName = "DexExchangesTable";
+
 export default DexExchangesTable;

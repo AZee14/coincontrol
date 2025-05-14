@@ -128,4 +128,6 @@ const DexPairsTable: FC<DexPairsTableProps> = React.memo(({ data }) => {
   );
 });
 
+DexPairsTable.displayName = "DexPairsTable";
+
 export default DexPairsTable;
