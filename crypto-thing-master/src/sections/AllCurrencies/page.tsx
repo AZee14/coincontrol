@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
@@ -12,7 +14,11 @@ import {
   CircularProgress,
   TablePagination,
   Chip,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useRouter } from "next/navigation";
 import "./types";
 import { formatNumber, formatDate } from "@/utils/allCurrencies";
 import TabPanel from "./TabPanel";
@@ -23,7 +29,7 @@ import MarketOverview from "./MarketOverview";
 import SearchTabBar from "./SearchTabBar";
 
 // Create a memoized row component for each table type
-const CoinRow = React.memo(({ coin }: { coin: CoinItem }) => (
+const CoinRow = React.memo(({ coin, onViewDetails }: { coin: CoinItem, onViewDetails: (coinId: string) => void }) => (
   <TableRow hover>
     <TableCell component="th" scope="row">
       <Box
@@ -64,6 +70,18 @@ const CoinRow = React.memo(({ coin }: { coin: CoinItem }) => (
     </TableCell>
     <TableCell align="right">{formatNumber(coin.trading_volume_24h)}</TableCell>
     <TableCell align="right">{formatNumber(coin.circulatingsupply)}</TableCell>
+    <TableCell align="center">
+      <Tooltip title="View Details">
+        <IconButton
+          size="small"
+          color="primary"
+          onClick={() => onViewDetails(coin.coin_id)}
+          aria-label="view coin details"
+        >
+          <VisibilityIcon />
+        </IconButton>
+      </Tooltip>
+    </TableCell>
   </TableRow>
 ));
 CoinRow.displayName = "CoinRow";
@@ -133,7 +151,7 @@ const DexExchangeRow = React.memo(({ exchange }: { exchange: DexExchange }) => (
 DexExchangeRow.displayName = "DexExchangeRow";
 
 // Create table components
-const CoinsTable = React.memo(({ data }: { data: CoinItem[] }) => (
+const CoinsTable = React.memo(({ data, onViewDetails }: { data: CoinItem[], onViewDetails: (coinId: string) => void }) => (
   <TableContainer component={Paper} elevation={0}>
     <Table sx={{ minWidth: 650 }} aria-label="coins table">
       <TableHead>
@@ -146,14 +164,15 @@ const CoinsTable = React.memo(({ data }: { data: CoinItem[] }) => (
           <TableCell align="right">7d%</TableCell>
           <TableCell align="right">Volume (24h)</TableCell>
           <TableCell align="right">Circulating Supply</TableCell>
+          <TableCell align="center">Details</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {data.length > 0 ? (
-          data.map((coin) => <CoinRow key={coin.coin_id} coin={coin} />)
+          data.map((coin) => <CoinRow key={coin.coin_id} coin={coin} onViewDetails={onViewDetails} />)
         ) : (
           <TableRow>
-            <TableCell colSpan={8} align="center">
+            <TableCell colSpan={9} align="center">
               <Typography variant="body1" color="text.secondary" sx={{ py: 2 }}>
                 No coins found matching your search.
               </Typography>
@@ -165,7 +184,6 @@ const CoinsTable = React.memo(({ data }: { data: CoinItem[] }) => (
   </TableContainer>
 ));
 CoinsTable.displayName = "CoinsTable";
-
 const DexPairsTable = React.memo(({ data }: { data: DexPairItem[] }) => (
   <TableContainer component={Paper} elevation={0}>
     <Table sx={{ minWidth: 650 }} aria-label="dex pairs table">
@@ -199,7 +217,6 @@ const DexPairsTable = React.memo(({ data }: { data: DexPairItem[] }) => (
   </TableContainer>
 ));
 DexPairsTable.displayName = "DexPairsTable";
-
 const DexExchangesTable = React.memo(({ data }: { data: DexExchange[] }) => (
   <TableContainer component={Paper} elevation={0}>
     <Table sx={{ minWidth: 650 }} aria-label="dex exchanges table">
@@ -242,6 +259,7 @@ const dataCache = {
 };
 
 export default function AllCurrencies() {
+  const router = useRouter();
   const [tabValue, setTabValue] = useState(0);
   const [coins, setCoins] = useState<CoinItem[]>([]);
   const [dexPairs, setDexPairs] = useState<DexPairItem[]>([]);
@@ -340,6 +358,11 @@ export default function AllCurrencies() {
     },
     []
   );
+
+  // Handle view details click
+  const handleViewDetails = useCallback((coinId: string) => {
+    router.push(`/coin/${coinId}`);
+  }, [router]);
 
   // Memoized filtered data
   const filteredData = useMemo(() => {
@@ -452,7 +475,7 @@ export default function AllCurrencies() {
         <Box>
           {/* Tabs content */}
           <TabPanel value={tabValue} index={0}>
-            <CoinsTable data={paginatedData.coins} />
+            <CoinsTable data={paginatedData.coins} onViewDetails={handleViewDetails} />
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
