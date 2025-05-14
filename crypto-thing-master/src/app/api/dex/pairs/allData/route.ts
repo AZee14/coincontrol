@@ -11,11 +11,9 @@ const supabase = createClient(
 export async function GET() {
   // We SELECT only the columns we need, plus the joined dex_exchanges.name
   const { data, error } = await supabase.from("dex_pairs").select(`
-      dex_id,
       name,
       contract_address,
       liquidity,
-      last_updated,
       price,
       volume_24h,
       percent_change_price_1h,
@@ -33,11 +31,9 @@ export async function GET() {
   // Map to the shape you want
   const results = data.map((row: any) => ({
     name: row.name,
-    dex_id: row.dex_id,
     dex_name: row.dex_exchanges.name,
     contract_address: row.contract_address,
     liquidity: Number(row.liquidity),
-    last_updated: row.last_updated,
     price: Number(row.price),
     volume_24h: Number(row.volume_24h),
     percent_change_1h: Number(row.percent_change_price_1h),

@@ -50,15 +50,12 @@ export default function AllCurrencies() {
         // Replace these with your actual API calls
         const coinsResponse = await getAllDataOnCoins();
         setCoins(coinsResponse);
-        console.log(coinsResponse);
 
         const dexPairsResponse = await getAllDataOnDexPairs();
         setDexPairs(dexPairsResponse.results);
-        console.log(dexPairsResponse);
 
         const dexExchangesResponse = await getDexExchanges();
         setDexExchanges(dexExchangesResponse);
-        console.log(dexExchangesResponse);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

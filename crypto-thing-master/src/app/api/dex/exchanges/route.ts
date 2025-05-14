@@ -11,7 +11,7 @@ const supabase = createClient(
 export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("dex_exchanges")
-    .select("*")
+    .select("exchange_id, name, volume_24h, percent_change_volume_24h, num_transactions_24h, num_market_pairs");
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
