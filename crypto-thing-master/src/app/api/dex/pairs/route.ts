@@ -7,7 +7,9 @@ const supabasePairs = createClient(
 );
 
 export async function GET(req: Request) {
-  const { data, error } = await supabasePairs.from("dex_pairs").select("*");
+  const { data, error } = await supabasePairs
+    .from("dex_pairs")
+    .select("price, base_asset_symbol, name, contract_address");
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
