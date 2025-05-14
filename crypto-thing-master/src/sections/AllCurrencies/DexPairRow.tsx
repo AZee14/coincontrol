@@ -3,6 +3,7 @@ import { formatNumber } from '@/utils/allCurrencies';
 import { Box, Chip, TableCell, TableRow, Typography } from '@mui/material';
 import React from 'react'
 
+// eslint-disable-next-line react/display-name
 const DexPairRow = React.memo(({ pair }: { pair: DexPairItem }) => (
   <TableRow hover>
     <TableCell component="th" scope="row">
@@ -21,7 +22,7 @@ const DexPairRow = React.memo(({ pair }: { pair: DexPairItem }) => (
         sx={{ textTransform: "capitalize" }}
       />
     </TableCell>
-    <TableCell>${pair.price.toFixed(3)}</TableCell>
+    <TableCell>${pair.price.toFixed(4)}</TableCell>
     <TableCell align="right">
       <PercentChange value={pair.percent_change_1h}>
         {pair.percent_change_1h}%

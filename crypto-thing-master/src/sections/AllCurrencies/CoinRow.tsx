@@ -2,6 +2,7 @@ import { PercentChange } from "@/components/PercentChange";
 import { formatNumber } from "@/utils/allCurrencies";
 import { Box, TableCell, TableRow, Typography } from "@mui/material";
 import React from "react"; // Create a memoized row component for each table type
+// eslint-disable-next-line react/display-name
 const CoinRow = React.memo(({ coin }: { coin: CoinItem }) => (
   <TableRow hover>
     <TableCell component="th" scope="row">
@@ -22,9 +23,7 @@ const CoinRow = React.memo(({ coin }: { coin: CoinItem }) => (
         </Typography>
       </Box>
     </TableCell>
-    <TableCell align="right">
-      {formatNumber(Number(coin.marketprice))}
-    </TableCell>
+    <TableCell align="right">{coin.marketprice}</TableCell>
     <TableCell align="right">{formatNumber(coin.marketcap)}</TableCell>
     <TableCell align="right">
       <PercentChange value={coin.volume1h}>

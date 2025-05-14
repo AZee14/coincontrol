@@ -350,13 +350,13 @@ const HomePage: React.FC = () => {
                 fontWeight={500}
                 sx={{ color: "#616e85", fontSize: { xs: "20px", sm: "24px" } }}
               >
-                My Portfolio
+                {data.userDetails?.first_name} {data.userDetails?.last_name}'s Portfolio
               </Typography>
               <Typography
                 fontWeight={700}
                 sx={{ fontSize: { xs: "28px", sm: "32px" } }}
               >
-                $12,345.67
+                ${data.userDetails?.total_value_now}
               </Typography>
             </Box>
           </Grid>
