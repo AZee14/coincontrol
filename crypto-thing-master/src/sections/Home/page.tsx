@@ -119,7 +119,7 @@ const HomePage: React.FC = () => {
     setModalTab(0); // 0 = Buy
 
     // 3) prefill the dropdown and inputs:
-    handleCoinChange(null, String(asset.coin_id ?? asset.contract_address)); // this drives your <TextField select value=…
+    // handleCoinChange(null, String(asset.coin_id ?? asset.contract_address)); // this drives your <TextField select value=…
     setPricePerCoin(String(asset.current_price ?? 0));
     setQuantity(String(asset.holding_amount ?? ""));
 
@@ -288,29 +288,45 @@ const HomePage: React.FC = () => {
   }, [user?.user_id, transactions, fetchPortfolioStats]);
 
   const handleCoinChange = (
-    e: React.ChangeEvent<HTMLInputElement> | null = null,
-    selected: string | null = null
+    e: React.ChangeEvent<HTMLInputElement>
+    // e: React.ChangeEvent<HTMLInputElement> | null = null,
+    // selected: string | null = null
   ) => {
-    let tab = itemTypeTab;
-    if (selected && !parseInt(selected, 10)) {
-      tab = 1;
-      setItemTypeTab(tab);
-    } else if (selected) {
-      tab = 0;
-      setItemTypeTab(tab);
-    } else selected = e!.target.value;
-    if (tab === 0) {
+    // let tab = itemTypeTab;
+    // if (selected && !parseInt(selected, 10)) {
+    //   tab = 1;
+    //   setItemTypeTab(tab);
+    // } else if (selected) {
+    //   tab = 0;
+    //   setItemTypeTab(tab);
+    // } else selected = e!.target.value;
+    // if (tab === 0) {
+    //   const coinObj = coins.find((c) => c.coin_id === selected);
+    //   if (coinObj) {
+    //     setSelectedCoin(
+    //       itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected
+    //     );
+    //     setPricePerCoin(coinObj.marketprice);
+    //   }
+    // } else {
+    //   const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
+    //   if (dexPairObj) {
+    //     setSelectedCoin(dexPairObj);
+    //     setPricePerCoin(dexPairObj.price);
+    //   }
+    // }
+    const selected = e.target.value;
+    setSelectedCoinId(selected); // Set the selectedCoinId correctly
+
+    // Update price per coin based on the selected item type
+    if (itemTypeTab === 0) {
       const coinObj = coins.find((c) => c.coin_id === selected);
       if (coinObj) {
-        setSelectedCoin(
-          itemTypeTab === 0 ? String(parseInt(selected, 10) || "") : selected
-        );
         setPricePerCoin(coinObj.marketprice);
       }
     } else {
       const dexPairObj = dexPairs.find((d) => d.contract_address === selected);
       if (dexPairObj) {
-        setSelectedCoin(dexPairObj);
         setPricePerCoin(dexPairObj.price);
       }
     }
@@ -1077,7 +1093,8 @@ const HomePage: React.FC = () => {
                 label={itemTypeTab === 0 ? "Select Coin" : "Select DEX Pair"}
                 value={selectedCoinId} // Changed from selectedCoin to selectedCoinId
                 onChange={(e) =>
-                  handleCoinChange(e as ChangeEvent<HTMLInputElement>, null)
+                  // handleCoinChange(e as ChangeEvent<HTMLInputElement>, null)
+                  handleCoinChange(e as ChangeEvent<HTMLInputElement>)
                 }
                 fullWidth
                 sx={textFieldSx}
