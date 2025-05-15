@@ -332,17 +332,6 @@ const HomePage: React.FC = () => {
             maxWidth: "1400px",
             mx: "auto",
             mb: 6,
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "50%",
-              height: "100%",
-              background:
-                "radial-gradient(circle at top right, rgba(0, 116, 228, 0.08) 0%, rgba(0, 116, 228, 0) 70%)",
-              zIndex: 0,
-            },
           }}
         >
           <Box sx={{ position: "relative", zIndex: 1 }}>
@@ -360,8 +349,8 @@ const HomePage: React.FC = () => {
                     sx={{
                       color: "#58667e",
                       fontWeight: 500,
-                      fontSize: { xs: "1rem", sm: "1.1rem" },
-                      mb: 1,
+                      fontSize: { xs: "1.5rem", sm: "1.7rem" },
+                      // mb: 1,
                     }}
                   >
                     {data.userDetails?.first_name} {data.userDetails?.last_name}
@@ -369,8 +358,8 @@ const HomePage: React.FC = () => {
                   </Typography>
                   <Typography
                     sx={{
-                      fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-                      fontWeight: 800,
+                      fontSize: { xs: "2rem", sm: "2.3rem", md: "2.5rem" },
+                      fontWeight: 700,
                       letterSpacing: "-0.5px",
                       background: "linear-gradient(90deg, #1a2c50, #0074e4)",
                       backgroundClip: "text",
@@ -443,7 +432,7 @@ const HomePage: React.FC = () => {
             <Tabs
               value={selectedTab}
               onChange={handleTabChange}
-              variant="fullWidth"
+              // variant="fullWidth"
               sx={{
                 "& .MuiTab-root": {
                   color: "#58667e",
@@ -452,6 +441,7 @@ const HomePage: React.FC = () => {
                   textTransform: "none",
                   transition: "all 0.2s ease",
                   minHeight: "56px",
+                  width:{md:'10rem'},
                   "&:hover": {
                     color: "#0074e4",
                     backgroundColor: "rgba(0, 116, 228, 0.04)",

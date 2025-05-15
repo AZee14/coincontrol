@@ -10,6 +10,7 @@ import {
   TableRow,
   Typography,
   TableSortLabel,
+  Box,
 } from "@mui/material";
 import React from "react";
 import CoinRow from "./CoinRow";
@@ -86,8 +87,8 @@ const CoinsTable: React.FC<CoinsTableProps> = React.memo(
     ];
 
     return (
-      <TableContainer component={Paper} elevation={0}>
-        <Table sx={{ minWidth: 650 }} aria-label="coins table">
+      <TableContainer component={Box} sx={{ overflowX: "auto" }}>
+        <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
               {columns.map((col) => {
@@ -96,35 +97,62 @@ const CoinsTable: React.FC<CoinsTableProps> = React.memo(
                 return (
                   <TableCell
                     key={col.key}
-                    align={col.align || "left"}
-                    sortDirection={direction ?? false}
-                    sx={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort(col.key)}
+                    sx={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      paddingTop: "16px",
+                      paddingBottom: "16px",
+                      paddingRight: 0,
+                      textAlign: col.key === "coin_name" ? "left" : "right",
+                    }}
                   >
-                    <TableSortLabel
-                      active={!!active}
-                      direction={direction}
-                      onClick={() => handleSort(col.key)}
-                    >
+                    <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
                       {col.label}
-                    </TableSortLabel>
+                      {active && (
+                        <Box component="span" sx={{ ml: 0.5 }}>
+                          {direction === "asc" ? "↑" : "↓"}
+                        </Box>
+                      )}
+                    </Typography>
                   </TableCell>
                 );
               })}
-              <TableCell align="center">Details</TableCell>
+              <TableCell
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  paddingTop: "16px",
+                  paddingBottom: "16px",
+                  paddingRight: 0,
+                  textAlign: "right",
+                }}
+              >
+                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
+                  Details
+                </Typography>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedData.length > 0 ? (
               sortedData.map((coin: any) => (
-                <CoinRow key={coin.coin_id} coin={coin} onViewDetails={onViewDetails} />
+                <CoinRow
+                  key={coin.coin_id}
+                  coin={coin}
+                  onViewDetails={onViewDetails}
+                />
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} align="center">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  sx={{ textAlign: "center", py: 3 }}
+                >
                   <Typography
-                    variant="body1"
-                    color="text.secondary"
-                    sx={{ py: 2 }}
+                    sx={{ color: "secondary.main", fontSize: "14px" }}
                   >
                     No coins found matching your search.
                   </Typography>

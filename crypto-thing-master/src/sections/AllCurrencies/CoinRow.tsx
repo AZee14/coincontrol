@@ -1,7 +1,15 @@
 import { PercentChange } from "@/components/PercentChange";
 import { formatNumber } from "@/utils/allCurrencies";
 import { Visibility } from "@mui/icons-material";
-import { Box, IconButton, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  TableCell,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import React from "react"; // Create a memoized row component for each table type
 // eslint-disable-next-line react/display-name
 const CoinRow = React.memo(
@@ -12,49 +20,137 @@ const CoinRow = React.memo(
     coin: CoinItem;
     onViewDetails: (coinId: string) => void;
   }) => (
-    <TableRow hover>
-      <TableCell component="th" scope="row">
-        <Box
+    <TableRow hover sx={{ height: "80px" }}>
+      <TableCell
+        sx={{
+          textAlign: "left",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+        }}
+      >
+        <Typography sx={{ color: "black", fontSize: "15px" }}>
+          {coin.coin_name}
+        </Typography>
+        <Typography color="secondary" sx={{ fontSize: "14px" }}>
+          {coin.symbol.toUpperCase()}
+        </Typography>
+      </TableCell>
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography sx={{ fontSize: "14px", color: "black" }}>
+          {coin.marketprice}
+        </Typography>
+      </TableCell>
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography sx={{ fontSize: "14px", color: "black" }}>
+          {formatNumber(coin.marketcap)}
+        </Typography>
+      </TableCell>
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            paddingTop: 0,
-            paddingBottom: 0,
-            paddingRight: 0,
+            fontSize: "14px",
+            color: coin.volume1h >= 0 ? "#16c784" : "#ea3943",
           }}
         >
-          <Typography sx={{ color: "black", fontSize: "15px" }}>
-            {coin.coin_name}
-          </Typography>
-          <Typography color="secondary" sx={{ fontSize: "14px" }}>
-            {coin.symbol.toUpperCase()}
-          </Typography>
-        </Box>
-      </TableCell>
-      <TableCell align="right">{coin.marketprice}</TableCell>
-      <TableCell align="right">{formatNumber(coin.marketcap)}</TableCell>
-      <TableCell align="right">
-        <PercentChange value={coin.volume1h}>
           {formatNumber(coin.volume1h)}%
-        </PercentChange>
+        </Typography>
       </TableCell>
-      <TableCell align="right">
-        <PercentChange value={coin.volume24h}>
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "14px",
+            color: coin.volume24h >= 0 ? "#16c784" : "#ea3943",
+          }}
+        >
           {formatNumber(coin.volume24h)}%
-        </PercentChange>
+        </Typography>
       </TableCell>
-      <TableCell align="right">
-        <PercentChange value={coin.volume7d}>
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "14px",
+            color: coin.volume7d >= 0 ? "#16c784" : "#ea3943",
+          }}
+        >
           {formatNumber(coin.volume7d)}%
-        </PercentChange>
+        </Typography>
       </TableCell>
-      <TableCell align="right">
-        {formatNumber(coin.trading_volume_24h)}
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography sx={{ fontSize: "14px", color: "black" }}>
+          {formatNumber(coin.trading_volume_24h)}
+        </Typography>
       </TableCell>
-      <TableCell align="right">
-        {formatNumber(coin.circulatingsupply)}
+      <TableCell
+        sx={{
+          textAlign: "right",
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
+        <Typography sx={{ fontSize: "14px", color: "black" }}>
+          {formatNumber(coin.circulatingsupply)}
+        </Typography>
       </TableCell>
-      <TableCell align="center">
+      <TableCell
+        align="center"
+        sx={{
+          height: "80px",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingRight: 0,
+        }}
+      >
         <Tooltip title="View Details">
           <IconButton
             size="small"

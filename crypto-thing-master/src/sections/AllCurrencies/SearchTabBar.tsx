@@ -5,33 +5,33 @@ import {
   Tab,
   TextField,
   InputAdornment,
-  IconButton,
-  Tooltip,
   CircularProgress,
   styled,
   alpha,
 } from "@mui/material";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 
-// Styled components for enhanced visual appeal
+// Styled components with enhanced visual appeal matching portfolio style
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   "& .MuiTabs-indicator": {
     height: 3,
     borderRadius: "3px 3px 0 0",
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: "#0074e4",
   },
   "& .MuiTab-root": {
     textTransform: "none",
-    fontWeight: 500,
-    fontSize: "0.925rem",
+    fontWeight: 600,
+    fontSize: "0.95rem",
     minWidth: 0,
-    padding: "12px 16px",
+    padding: "12px 18px",
+    color: "#58667e",
+    transition: "all 0.2s ease",
     "&:hover": {
-      color: theme.palette.primary.main,
-      opacity: 1,
+      color: "#0074e4",
+      backgroundColor: "rgba(0, 116, 228, 0.04)",
     },
     "&.Mui-selected": {
-      color: theme.palette.primary.main,
+      color: "#0074e4",
       fontWeight: 600,
     },
   },
@@ -39,18 +39,22 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
-    borderRadius: 8,
+    borderRadius: 10,
     transition: theme.transitions.create([
       "border-color",
       "background-color",
       "box-shadow",
     ]),
-    "&:hover": {
-      borderColor: theme.palette.primary.main,
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#0074e4",
     },
-    "&.Mui-focused": {
-      boxShadow: `${alpha(theme.palette.primary.main, 0.15)} 0 0 0 2px`,
-      borderColor: theme.palette.primary.main,
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      boxShadow: `0 0 0 3px rgba(0, 116, 228, 0.15)`,
+      borderColor: "#0074e4",
+      borderWidth: "1px",
+    },
+    "& .MuiInputBase-input": {
+      padding: "10px 12px",
     },
   },
 }));
@@ -60,95 +64,70 @@ const SearchTabBar = ({
   onTabChange,
   searchTerm,
   onSearchChange,
-  counts = { coins: 0, dexPairs: 0, exchanges: 0 },
+  counts = { coins: 0, dexpairs: 0, exchanges: 0 },
   loading = false,
 }: any) => {
   // Format counts with commas if they're large numbers
-  const formatCount = (count: any) => {
+  const formatCount = (count: number) => {
     return count > 999 ? count.toLocaleString() : count;
   };
+
+  const tabIndicators = [
+    { color: "#0074e4", label: "Coins", key: "coins" },
+    { color: "#f3ba2f", label: "DEX Pairs", key: "dexpairs" },
+    { color: "#16c784", label: "Exchanges", key: "exchanges" },
+  ];
 
   return (
     <Box
       component="header"
       sx={{
         borderBottom: 1,
-        borderColor: "divider",
+        borderColor: "rgba(0, 116, 228, 0.2)",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
         justifyContent: "space-between",
         alignItems: { xs: "stretch", md: "center" },
-        px: { xs: 2, lg: 3 },
+        px: { xs: 0, sm: 1 },
         pb: 1,
-        pt: 0,
-        mt: 0,
-        // pt: { xs: 1, md: 2 },
-        backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.8),
-        backdropFilter: "blur(8px)",
+        pt: { xs: 1, md: 1 },
+        backgroundColor: "#f8faff",
+        backdropFilter: "blur(12px)",
         position: "sticky",
-        top: (theme) => `-${theme.spacing(3)}`,
+        top: 0,
         zIndex: 10,
+        borderRadius: { xs: "16px 16px 0 0", md: "24px 24px 0 0" },
       }}
     >
       <StyledTabs
         value={tabValue}
         onChange={onTabChange}
         aria-label="crypto data tabs"
-        sx={{ mb: { xs: 2, md: 0 } }}
+        sx={{ mb: { xs: 2, md: 0 }}}
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab
-          label={`Coins (${formatCount(counts.coins)})`}
-          icon={
-            <span
-              className="dot"
-              style={{
-                display: "inline-block",
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#3861fb",
-                marginRight: "6px",
-              }}
-            />
-          }
-          iconPosition="start"
-        />
-        <Tab
-          label={`DEX Pairs (${formatCount(counts.dexPairs)})`}
-          icon={
-            <span
-              className="dot"
-              style={{
-                display: "inline-block",
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#f3ba2f",
-                marginRight: "6px",
-              }}
-            />
-          }
-          iconPosition="start"
-        />
-        <Tab
-          label={`Exchanges (${formatCount(counts.exchanges)})`}
-          icon={
-            <span
-              className="dot"
-              style={{
-                display: "inline-block",
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#16c784",
-                marginRight: "6px",
-              }}
-            />
-          }
-          iconPosition="start"
-        />
+        {tabIndicators.map((item, index) => (
+          <Tab
+            key={index}
+            label={`${item.label} (${formatCount(counts[item.key])})`}
+            icon={
+              <span
+                className="dot"
+                style={{
+                  display: "inline-block",
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  backgroundColor: item.color,
+                  marginRight: "8px",
+                }}
+              />
+            }
+            iconPosition="start"
+            sx={{ width: { md: "12rem" } }}
+          />
+        ))}
       </StyledTabs>
 
       <StyledTextField
@@ -158,21 +137,24 @@ const SearchTabBar = ({
         value={searchTerm}
         onChange={onSearchChange}
         sx={{
-          width: { xs: "100%", md: "300px", lg: "340px" },
-          transition: "width 0.3s ease",
+          width: { xs: "95%", md: "280px", lg: "320px" },
+          mx: { xs: "auto", md: 2 },
+          mb: { xs: 1, md: 0 },
+          transition: "width 0.3s ease, box-shadow 0.2s ease",
           "&:focus-within": {
-            width: { md: "340px", lg: "380px" },
+            width: { md: "320px", lg: "360px" },
+            transform: "translateY(-1px)",
           },
         }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Search size={18} />
+              <Search size={18} color="#58667e" />
             </InputAdornment>
           ),
-          endAdornment: loading ?? (
+          endAdornment: loading && (
             <InputAdornment position="end">
-              <CircularProgress size={18} color="primary" />
+              <CircularProgress size={18} sx={{ color: "#0074e4" }} />
             </InputAdornment>
           ),
         }}

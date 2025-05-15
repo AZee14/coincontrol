@@ -86,7 +86,6 @@ function Assets({
   return (
     <TableContainer component={Box} sx={{ overflowX: "auto" }}>
       <Table sx={{ minWidth: 650 }}>
-        {" "}
         <TableHead>
           <TableRow>
             <TableCell sx={{ width: "25%" }}>
@@ -304,57 +303,6 @@ function Assets({
                 </TableCell>
               </TableRow>
             )}
-          </TableBody>
-        )}
-        {(!isInitialized || !user) && (
-          <TableBody>
-            <TableRow>
-              <TableCell sx={{ width: "25%" }}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Name
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Price
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  1h%
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  24h%
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  7d%
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Holdings
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Avg Buy Price
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Profit/Loss
-                </Typography>
-              </TableCell>
-              <TableCell className={classes.th}>
-                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
-                  Actions
-                </Typography>
-              </TableCell>
-            </TableRow>
           </TableBody>
         )}
       </Table>

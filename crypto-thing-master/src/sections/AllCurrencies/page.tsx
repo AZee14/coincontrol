@@ -1,65 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  TablePagination,
-  Chip,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import { Box, TablePagination, Paper, Container, Fade } from "@mui/material";
 import { useRouter } from "next/navigation";
 import "./types";
 import { formatNumber, formatDate } from "@/utils/allCurrencies";
 import TabPanel from "./TabPanel";
 import { getAllDataOnCoins } from "@/utils/coins";
 import { getAllDataOnDexPairs, getDexExchanges } from "@/utils/dex";
-import { PercentChange } from "@/components/PercentChange";
 import MarketOverview from "./MarketOverview";
 import SearchTabBar from "./SearchTabBar";
 import CoinsTable from "./CoinsTable";
 import DexPairsTable from "./DexPairsTable";
 import DexExchangesTable from "./DexExchangesTable";
 import SkeletonAllCurrencies from "./SkeletonAllCurrencies";
-
-const DexExchangeRow = React.memo(({ exchange }: { exchange: DexExchange }) => (
-  <TableRow hover>
-    <TableCell component="th" scope="row">
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <Typography
-          variant="body2"
-          fontWeight="medium"
-          sx={{ textTransform: "capitalize" }}
-        >
-          {exchange.name}
-        </Typography>
-      </Box>
-    </TableCell>
-    <TableCell align="right">{formatNumber(exchange.volume_24h)}</TableCell>
-    <TableCell align="right">
-      <PercentChange value={exchange.percent_change_volume_24h}>
-        {exchange.percent_change_volume_24h.toFixed(2)}%
-      </PercentChange>
-    </TableCell>
-    <TableCell align="right">
-      {exchange.num_transactions_24h.toLocaleString()}
-    </TableCell>
-    <TableCell align="right">
-      {exchange.num_market_pairs.toLocaleString()}
-    </TableCell>
-  </TableRow>
-));
-DexExchangeRow.displayName = "DexExchangeRow";
 
 // Create a cache object outside of the component
 const dataCache = {
@@ -172,9 +126,12 @@ export default function AllCurrencies() {
   );
 
   // Handle view details click
-  const handleViewDetails = useCallback((coinId: string) => {
-    router.push(`/coin/${coinId}`);
-  }, [router]);
+  const handleViewDetails = useCallback(
+    (coinId: string) => {
+      router.push(`/coin/${coinId}`);
+    },
+    [router]
+  );
 
   // Memoized filtered data
   const filteredData = useMemo(() => {
@@ -239,7 +196,7 @@ export default function AllCurrencies() {
   const counts = useMemo(
     () => ({
       coins: filteredData.coins.length,
-      dexPairs: filteredData.dexPairs.length,
+      dexpairs: filteredData.dexPairs.length,
       exchanges: filteredData.dexExchanges.length,
     }),
     [filteredData]
@@ -248,63 +205,133 @@ export default function AllCurrencies() {
   // Get current count based on active tab
   const currentCount = useMemo(() => {
     if (tabValue === 0) return counts.coins;
-    if (tabValue === 1) return counts.dexPairs;
+    if (tabValue === 1) return counts.dexpairs;
     return counts.exchanges;
   }, [tabValue, counts]);
 
   return (
-    <Box sx={{ width: "100%", bgcolor: "background.paper", p: 0, m: 0 }}>
-      {/* Market Overview Cards */}
-      {marketStats && (
-        <MarketOverview
-          totalCap={marketStats.totalCap}
-          tradingVolume={marketStats.tradingVolume}
-          dexPairsLength={marketStats.dexPairsLength}
-          lastUpdated={marketStats.lastUpdated}
-          dexExchangesLength={marketStats.dexExchangesLength}
-          dexExchangesGrowing={marketStats.dexExchangesGrowing}
-        />
-      )}
+    <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 4 } }}>
+      <Paper
+        elevation={4}
+        sx={{
+          background: "linear-gradient(135deg, #f8faff 0%, #e9f1ff 100%)",
+          borderRadius: { xs: "16px", md: "24px" },
+          padding: { xs: "1.5rem", sm: "2rem", md: "3rem" },
+          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+          overflow: "hidden",
+          position: "relative",
+          maxWidth: "1400px",
+          mx: "auto",
+          mb: 6,
+        }}
+      >
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          {/* Market Overview Cards */}
+          {marketStats && (
+            <MarketOverview
+              totalCap={marketStats.totalCap}
+              tradingVolume={marketStats.tradingVolume}
+              dexPairsLength={marketStats.dexPairsLength}
+              lastUpdated={marketStats.lastUpdated}
+              dexExchangesLength={marketStats.dexExchangesLength}
+              dexExchangesGrowing={marketStats.dexExchangesGrowing}
+            />
+          )}
+        </Box>
 
-      {/* Search and Tabs */}
-      <SearchTabBar
-        tabValue={tabValue}
-        onTabChange={handleTabChange}
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        counts={counts}
-        loading={loading}
-      />
-
-      {loading ? (
-        <SkeletonAllCurrencies/>
-      ) : (
-        <Box>
-          {/* Tabs content */}
-          <TabPanel value={tabValue} index={0}>
-            <CoinsTable data={paginatedData.coins} onViewDetails={handleViewDetails} />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={1}>
-            <DexPairsTable data={paginatedData.dexPairs} />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={2}>
-            <DexExchangesTable data={paginatedData.dexExchanges} />
-          </TabPanel>
-
-          {/* Pagination */}
-          <TablePagination
-            component="div"
-            count={currentCount}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50]}
+        {/* Search and Tabs - Positioned outside the relative Box for sticky to work */}
+        <Box
+          sx={{
+            position: "sticky",
+            top: { xs: "1.5rem", sm: "2rem", md: "3rem" },
+            zIndex: 10,
+            marginTop: 3,
+            marginBottom: 3,
+            marginX: { xs: -3, sm: -4, md: -6 },
+            paddingX: { xs: 3, sm: 4, md: 6 },
+          }}
+        >
+          <SearchTabBar
+            tabValue={tabValue}
+            onTabChange={handleTabChange}
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            counts={counts}
+            loading={loading}
           />
         </Box>
-      )}
-    </Box>
+
+        {loading ? (
+          <SkeletonAllCurrencies />
+        ) : (
+          <Box sx={{ mt: 3, minHeight: "400px" }}>
+            {/* Tabs content with fade transition */}
+            <Fade in={tabValue === 0} timeout={500}>
+              <div style={{ display: tabValue === 0 ? "block" : "none" }}>
+                <TabPanel value={tabValue} index={0}>
+                  <CoinsTable
+                    data={paginatedData.coins}
+                    onViewDetails={handleViewDetails}
+                  />
+                </TabPanel>
+              </div>
+            </Fade>
+
+            <Fade in={tabValue === 1} timeout={500}>
+              <div style={{ display: tabValue === 1 ? "block" : "none" }}>
+                <TabPanel value={tabValue} index={1}>
+                  <DexPairsTable data={paginatedData.dexPairs} />
+                </TabPanel>
+              </div>
+            </Fade>
+
+            <Fade in={tabValue === 2} timeout={500}>
+              <div style={{ display: tabValue === 2 ? "block" : "none" }}>
+                <TabPanel value={tabValue} index={2}>
+                  <DexExchangesTable data={paginatedData.dexExchanges} />
+                </TabPanel>
+              </div>
+            </Fade>
+
+            {/* Pagination with styled appearance */}
+            <TablePagination
+              component="div"
+              count={currentCount}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              sx={{
+                ".MuiTablePagination-toolbar": {
+                  borderRadius: "10px",
+                  paddingY: 0.5,
+                  margin: "1rem 0",
+                },
+                ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows":
+                  {
+                    color: "#58667e",
+                    fontWeight: 500,
+                  },
+                ".MuiTablePagination-select": {
+                  paddingBottom: 0,
+                },
+                ".MuiTablePagination-actions": {
+                  "& .MuiIconButton-root": {
+                    color: "#0074e4",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 116, 228, 0.1)",
+                    },
+                    "&.Mui-disabled": {
+                      color: "rgba(0, 0, 0, 0.26)",
+                    },
+                  },
+                },
+              }}
+            />
+          </Box>
+        )}
+      </Paper>
+    </Container>
   );
 }

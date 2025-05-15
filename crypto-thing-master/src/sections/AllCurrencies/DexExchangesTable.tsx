@@ -1,5 +1,6 @@
 import React, { FC, useState, useMemo } from "react";
 import {
+  Box,
   Paper,
   Table,
   TableBody,
@@ -83,23 +84,32 @@ const DexExchangesTable: FC<DexExchangesTableProps> = React.memo(({ data }) => {
   }, [data, order, orderBy]);
 
   return (
-    <TableContainer component={Paper} elevation={0}>
-      <Table sx={{ minWidth: 650 }} aria-label="dex exchanges table">
+    <TableContainer component={Box} sx={{ overflowX: "auto" }}>
+      <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow>
             {headCells.map((headCell) => (
               <TableCell
                 key={headCell.id}
-                align={headCell.align}
-                sortDirection={orderBy === headCell.id ? order : false}
+                onClick={() => handleRequestSort(headCell.id)}
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  paddingTop: '16px',
+                  paddingBottom: '16px',
+                  paddingRight: 0,
+                  textAlign: headCell.id === "name" ? "left" : "right",
+                }}
               >
-                <TableSortLabel
-                  active={orderBy === headCell.id}
-                  direction={orderBy === headCell.id ? order : "asc"}
-                  onClick={() => handleRequestSort(headCell.id)}
-                >
+                <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
                   {headCell.label}
-                </TableSortLabel>
+                  {orderBy === headCell.id ? (
+                    <Box component="span" sx={{ ml: 0.5 }}>
+                      {order === "asc" ? "↑" : "↓"}
+                    </Box>
+                  ) : null}
+                </Typography>
               </TableCell>
             ))}
           </TableRow>
@@ -111,12 +121,11 @@ const DexExchangesTable: FC<DexExchangesTableProps> = React.memo(({ data }) => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={headCells.length} align="center">
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ py: 2 }}
-                >
+              <TableCell
+                colSpan={headCells.length}
+                sx={{ textAlign: "center", py: 3 }}
+              >
+                <Typography sx={{ color: "secondary.main", fontSize: "14px" }}>
                   No exchanges found matching your search.
                 </Typography>
               </TableCell>

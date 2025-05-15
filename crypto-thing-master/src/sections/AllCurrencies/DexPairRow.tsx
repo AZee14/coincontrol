@@ -1,41 +1,102 @@
-import { PercentChange } from '@/components/PercentChange';
-import { formatNumber } from '@/utils/allCurrencies';
-import { Box, Chip, TableCell, TableRow, Typography } from '@mui/material';
-import React from 'react'
+import { PercentChange } from "@/components/PercentChange";
+import { formatNumber } from "@/utils/allCurrencies";
+import { Box, Chip, TableCell, TableRow, Typography } from "@mui/material";
+import React from "react";
 
 // eslint-disable-next-line react/display-name
 const DexPairRow = React.memo(({ pair }: { pair: DexPairItem }) => (
-  <TableRow hover>
-    <TableCell component="th" scope="row">
-      <Typography
-        variant="body2"
-        fontWeight="medium"
-        sx={{ textTransform: "uppercase" }}
-      >
+  <TableRow hover sx={{ height: "80px" }}>
+    <TableCell
+      sx={{
+        textAlign: "left",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+      }}
+    >
+      <Typography sx={{ color: "black", fontSize: "15px" }}>
         {pair.name}
       </Typography>
+      <Typography color="secondary" sx={{ fontSize: "14px" }}>
+        {pair.dex_name}
+      </Typography>
     </TableCell>
-    <TableCell>
-      <Chip
-        label={pair.dex_name}
-        size="small"
-        sx={{ textTransform: "capitalize" }}
-      />
+    <TableCell
+      sx={{
+        textAlign: "right",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 0,
+      }}
+    >
+      <Typography sx={{ fontSize: "14px", color: "black" }}>
+        ${pair.price.toFixed(4)}
+      </Typography>
     </TableCell>
-    <TableCell>${pair.price.toFixed(4)}</TableCell>
-    <TableCell align="right">
-      <PercentChange value={pair.percent_change_1h}>
+    <TableCell
+      sx={{
+        textAlign: "right",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 0,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: "14px",
+          color: pair.percent_change_1h >= 0 ? "#16c784" : "#ea3943",
+        }}
+      >
         {pair.percent_change_1h}%
-      </PercentChange>
+      </Typography>
     </TableCell>
-    <TableCell align="right">
-      <PercentChange value={pair.percent_change_24h}>
+    <TableCell
+      sx={{
+        textAlign: "right",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 0,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: "14px",
+          color: pair.percent_change_24h >= 0 ? "#16c784" : "#ea3943",
+        }}
+      >
         {pair.percent_change_24h}%
-      </PercentChange>
+      </Typography>
     </TableCell>
-    <TableCell align="right">{formatNumber(pair.volume_24h)}</TableCell>
-    <TableCell align="right">{formatNumber(pair.liquidity)}</TableCell>
+    <TableCell
+      sx={{
+        textAlign: "right",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 0,
+      }}
+    >
+      <Typography sx={{ fontSize: "14px", color: "black" }}>
+        {formatNumber(pair.volume_24h)}
+      </Typography>
+    </TableCell>
+    <TableCell
+      sx={{
+        textAlign: "right",
+        height: "80px",
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 0,
+      }}
+    >
+      <Typography sx={{ fontSize: "14px", color: "black" }}>
+        {formatNumber(pair.liquidity)}
+      </Typography>
+    </TableCell>
   </TableRow>
 ));
 
-export default DexPairRow
+export default DexPairRow;
