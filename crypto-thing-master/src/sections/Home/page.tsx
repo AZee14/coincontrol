@@ -280,7 +280,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleAssetBuySell = (asset: AssetData) => {
-    setItemTypeTab(0);
+    setItemTypeTab(asset.contract_address ? 1 : 0)
     setModalTab(0);
     setPricePerCoin(String(asset.current_price ?? 0));
     setQuantity(String(asset.holding_amount ?? ""));
@@ -308,7 +308,7 @@ const HomePage: React.FC = () => {
 
   // Show loading state if initial data isn't ready
   if (loading.initial) {
-    return <SkeletonPortfolio/>
+    return <SkeletonPortfolio />;
   }
 
   function handleViewDetailedAnalysis(asset: AssetData): void {
@@ -364,7 +364,8 @@ const HomePage: React.FC = () => {
                       mb: 1,
                     }}
                   >
-                    {data.userDetails?.first_name} {data.userDetails?.last_name}&#39;s Portfolio
+                    {data.userDetails?.first_name} {data.userDetails?.last_name}
+                    &#39;s Portfolio
                   </Typography>
                   <Typography
                     sx={{
@@ -485,7 +486,7 @@ const HomePage: React.FC = () => {
                   </div>
                 </Fade>
               )}
-              
+
               {selectedTab === 1 && (
                 <Fade in={selectedTab === 1} timeout={500}>
                   <div>
@@ -499,7 +500,7 @@ const HomePage: React.FC = () => {
             </Box>
           </Box>
         </Paper>
-        
+
         <TransactionModal
           quantity={quantity}
           pricePerCoin={pricePerCoin}
