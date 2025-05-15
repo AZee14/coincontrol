@@ -34,6 +34,7 @@ import {
 } from "@/utils/portfolio";
 import { getDexPairs } from "@/utils/dex";
 import TransactionModal from "./TransactionModal";
+import SkeletonPortfolio from "./SkeletonPortfolio";
 
 // Define a TopCoin interface for market data
 interface TopCoin {
@@ -307,36 +308,7 @@ const HomePage: React.FC = () => {
 
   // Show loading state if initial data isn't ready
   if (loading.initial) {
-    return (
-      <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 4 } }}>
-        <Paper
-          elevation={4}
-          sx={{
-            background: "linear-gradient(135deg, #f8faff 0%, #e9f1ff 100%)",
-            borderRadius: { xs: "16px", md: "24px" },
-            padding: { xs: "2rem", sm: "3rem", md: "4rem" },
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
-            textAlign: "center",
-            maxWidth: "1400px",
-            mx: "auto",
-            my: 6,
-          }}
-        >
-          <Typography 
-            variant="h5" 
-            fontWeight={600}
-            sx={{
-              background: "linear-gradient(90deg, #1a2c50, #0074e4)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Loading portfolio data...
-          </Typography>
-        </Paper>
-      </Container>
-    );
+    return <SkeletonPortfolio/>
   }
 
   function handleViewDetailedAnalysis(asset: AssetData): void {

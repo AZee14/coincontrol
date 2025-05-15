@@ -30,6 +30,7 @@ import SearchTabBar from "./SearchTabBar";
 import CoinsTable from "./CoinsTable";
 import DexPairsTable from "./DexPairsTable";
 import DexExchangesTable from "./DexExchangesTable";
+import SkeletonAllCurrencies from "./SkeletonAllCurrencies";
 
 const DexExchangeRow = React.memo(({ exchange }: { exchange: DexExchange }) => (
   <TableRow hover>
@@ -276,12 +277,7 @@ export default function AllCurrencies() {
       />
 
       {loading ? (
-        <Box sx={{ p: 4, textAlign: "center" }}>
-          <CircularProgress />
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            Loading data...
-          </Typography>
-        </Box>
+        <SkeletonAllCurrencies/>
       ) : (
         <Box>
           {/* Tabs content */}

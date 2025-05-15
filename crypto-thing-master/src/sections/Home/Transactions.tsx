@@ -122,7 +122,7 @@ const Transactions: React.FC<TransactionsProps> = ({
                   sx={{
                     fontSize: "12px",
                     color:
-                      Number(transaction.Value_in_Dollars) > 0
+                      transaction.Type === 'Buy'
                         ? "#16c784"
                         : "#ea3943",
                   }}
