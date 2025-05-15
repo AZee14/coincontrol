@@ -271,6 +271,7 @@ function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: Ass
                     Buy/Sell
                   </Typography>
                 </TableCell>
+                
                 <Button
   variant="text"
   size="small"

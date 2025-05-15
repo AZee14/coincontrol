@@ -131,15 +131,7 @@ export default function CoinPage() {
               <label htmlFor="showVolume" className="text-sm">Show Volume</label>
             </div>
           </div>
-          
-          <CoinChart 
-            coinId={coinData.coin_id} 
-            coinSymbol={coinData.symbol}
-            timeFrame={timeFrame}
-            showMarketCap={showMarketCap}
-            showVolume={showVolume}
-            height={500}
-          />
+
           
           <div className="flex space-x-2 mt-4">
             <button 

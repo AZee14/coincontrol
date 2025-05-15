@@ -125,21 +125,7 @@ const CoinChart: React.FC<CoinChartProps> = ({
         <h2 className="text-xl font-bold">
           Price Chart ({coinSymbol})
         </h2>
-        <div className="flex space-x-2">
-          {(['24h','7d','30d','90d','1y','all'] as const).map(tf => (
-            <button
-              key={tf}
-              className={`px-3 py-1 rounded ${
-                selectedTimeFrame === tf
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-800'
-              }`}
-              onClick={() => setSelectedTimeFrame(tf)}
-            >
-              {tf.toUpperCase()}
-            </button>
-          ))}
-        </div>
+
       </div>
 
       {/* Chart or fallback */}
