@@ -33,7 +33,6 @@ import {
   getWorstPerformer,
 } from "@/utils/portfolio";
 import { getDexPairs } from "@/utils/dex";
-import MarketTab from "./MarketTab";
 import TransactionModal from "./TransactionModal";
 
 // Define a TopCoin interface for market data
@@ -101,7 +100,7 @@ const HomePage: React.FC = () => {
     chartLoaded: false,
   });
 
-  const tabs = ["Assets", "Transactions", "Market"];
+  const tabs = ["Assets", "Transactions"];
 
   // API fetch functions
   const fetchData = useCallback(async () => {
@@ -292,15 +291,6 @@ const HomePage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleMarketCoinChange = (event: SelectChangeEvent<string>) => {
-    const coinId = event.target.value as string;
-    const coin = data.topCoins.find((c) => c.coin_id.toString() === coinId);
-    if (coin) {
-      setSelectedCoin(coin);
-      setChartLoaded(false);
-      setTimeout(() => setChartLoaded(true), 300);
-    }
-  };
 
   // Process transactions for display
   const formattedTransactions = data.transactions.map((tx) => {
@@ -416,18 +406,6 @@ const HomePage: React.FC = () => {
           <Transactions
             data={formattedTransactions}
             onTransactionDeleted={refreshUserData}
-          />
-        )}
-        {selectedTab === 2 && (
-          <MarketTab
-            selectedTab={selectedTab}
-            loading={!dataCache.topCoins}
-            selectedCoin={selectedCoin}
-            isMobile={isMobile}
-            isTablet={isTablet}
-            handleMarketCoinChange={handleMarketCoinChange}
-            topCoins={data.topCoins}
-            chartLoaded={chartLoaded}
           />
         )}
         <TransactionModal
