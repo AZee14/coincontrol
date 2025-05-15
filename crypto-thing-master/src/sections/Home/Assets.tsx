@@ -142,6 +142,11 @@ function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: Ass
               Actions
             </Typography>
           </TableCell>
+          <TableCell className={classes.th}>
+            <Typography sx={{ fontSize: "12px", fontWeight: "600", textAlign : "center" }}>
+              Analysis
+            </Typography>
+          </TableCell>
         </TableRow>
       </TableHead>
       {isInitialized && user && (
@@ -272,13 +277,18 @@ function Assets({ onBuySellClick, onViewDetailedAnalysis, assets, loading }: Ass
                   </Typography>
                 </TableCell>
                 
-                <Button
-  variant="text"
-  size="small"
-  onClick={() => onViewDetailedAnalysis(asset)}
->
-  View detailed analysis
-</Button>
+             <TableCell className={classes.tc}>
+                  <Typography
+                    sx={{
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      color: "#1976d2",
+                    }}
+                    onClick={() => onViewDetailedAnalysis(asset)}
+                  >
+                    View Analysis
+                  </Typography>
+                </TableCell>
               </TableRow>
             ))
           ) : (
