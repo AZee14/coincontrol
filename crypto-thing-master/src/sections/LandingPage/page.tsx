@@ -47,7 +47,7 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [chartLoaded, setChartLoaded] = useState(false);
 
-  const tabs = ["Assets", "Transactions", "Market"];
+  const tabs = ["Assets", "Transactions"];
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
@@ -244,14 +244,6 @@ export default function LandingPage() {
                     transition: "opacity 0.5s ease-in-out",
                   }}
                 >
-                  <CoinChart
-                    coinId={selectedCoin.coin_id}
-                    coinSymbol={selectedCoin.symbol}
-                    timeFrame="7d"
-                    height={350} // Reduced chart height to leave room for stats
-                    showMarketCap={true}
-                    showVolume={true}
-                  />
 
                   {!chartLoaded && (
                     <Box
@@ -851,8 +843,13 @@ export default function LandingPage() {
               <Fade in={selectedTab === 0} timeout={500}>
                 <div>
                   <Assets
+                    assets={[]} // TODO: Replace with actual assets data if available
+                    loading={false} // TODO: Replace with actual loading state if needed
                     onBuySellClick={(asset) =>
                       console.log("Buy/Sell clicked for:", asset)
+                    }
+                    onViewDetailedAnalysis={(asset) =>
+                      console.log("View Detailed Analysis clicked for:", asset)
                     }
                   />
                 </div>
@@ -866,8 +863,6 @@ export default function LandingPage() {
                 </div>
               </Fade>
             )}
-
-            {selectedTab === 2 && renderMarketContent()}
 
             {(selectedTab === 0 || selectedTab === 1) && (
               <Fade in={selectedTab === 0 || selectedTab === 1} timeout={500}>
