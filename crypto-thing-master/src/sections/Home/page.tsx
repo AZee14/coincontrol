@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
@@ -13,7 +12,8 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
-  SelectChangeEvent,
+  Paper,
+  Fade,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
     coins: [] as Coin[],
     dexPairs: [] as any[],
     topCoins: [] as TopCoin[],
-    assets: [] as AssetData[], // Add this line
+    assets: [] as AssetData[],
     portfolioStats: {
       allTimeProfit: undefined,
       bestPerformer: undefined,
@@ -90,13 +90,12 @@ const HomePage: React.FC = () => {
   const [dateTime, setDateTime] = useState(new Date());
 
   // Loading state - single object to reduce re-renders
-  // In the loading state object
   const [loading, setLoading] = useState({
     initial: true,
     transactions: true,
     userDetails: true,
     portfolioStats: true,
-    assets: true, // Add this line
+    assets: true,
     chartLoaded: false,
   });
 
@@ -202,7 +201,6 @@ const HomePage: React.FC = () => {
         })
       );
 
-      // Inside fetchData function, add this to the fetchPromises array
       fetchPromises.push(
         getAssets(user.user_id)
           .then((data) => {
@@ -230,14 +228,12 @@ const HomePage: React.FC = () => {
     if (!user?.user_id) return;
 
     try {
-      // Inside refreshUserData function, update the Promise.all to include assets
       const [transactions, userDetails, assets] = await Promise.all([
         getTransactions(user.user_id),
         getUserDetails(user.user_id),
         getAssets(user.user_id).then((data) => data.results || []),
       ]);
 
-      // Then update the setData call
       setData((prev) => ({
         ...prev,
         transactions: transactions || [],
@@ -291,7 +287,6 @@ const HomePage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-
   // Process transactions for display
   const formattedTransactions = data.transactions.map((tx) => {
     const coin = data.coins.find((c) => c.coin_id === tx.coin_id);
@@ -313,8 +308,33 @@ const HomePage: React.FC = () => {
   // Show loading state if initial data isn't ready
   if (loading.initial) {
     return (
-      <Container sx={{ py: 4, textAlign: "center" }}>
-        <Typography variant="h5">Loading portfolio data...</Typography>
+      <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 4 } }}>
+        <Paper
+          elevation={4}
+          sx={{
+            background: "linear-gradient(135deg, #f8faff 0%, #e9f1ff 100%)",
+            borderRadius: { xs: "16px", md: "24px" },
+            padding: { xs: "2rem", sm: "3rem", md: "4rem" },
+            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+            textAlign: "center",
+            maxWidth: "1400px",
+            mx: "auto",
+            my: 6,
+          }}
+        >
+          <Typography 
+            variant="h5" 
+            fontWeight={600}
+            sx={{
+              background: "linear-gradient(90deg, #1a2c50, #0074e4)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Loading portfolio data...
+          </Typography>
+        </Paper>
       </Container>
     );
   }
@@ -327,87 +347,187 @@ const HomePage: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container sx={{ px: { xs: 2, sm: 4, md: 6 }, py: 4 }}>
-        <Grid
-          container
-          spacing={2}
-          alignItems="center"
-          justifyContent="space-between"
+      <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 4 } }}>
+        <Paper
+          elevation={4}
+          sx={{
+            background: "linear-gradient(135deg, #f8faff 0%, #e9f1ff 100%)",
+            borderRadius: { xs: "16px", md: "24px" },
+            padding: { xs: "1.5rem", sm: "2rem", md: "3rem" },
+            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+            overflow: "hidden",
+            position: "relative",
+            maxWidth: "1400px",
+            mx: "auto",
+            mb: 6,
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "50%",
+              height: "100%",
+              background:
+                "radial-gradient(circle at top right, rgba(0, 116, 228, 0.08) 0%, rgba(0, 116, 228, 0) 70%)",
+              zIndex: 0,
+            },
+          }}
         >
-          <Grid item xs={12} sm={6}>
-            <Box textAlign={{ xs: "center", sm: "left" }}>
-              <Typography
-                fontWeight={500}
-                sx={{ color: "#616e85", fontSize: { xs: "20px", sm: "24px" } }}
+          <Box sx={{ position: "relative", zIndex: 1 }}>
+            {/* Header section with portfolio value and add transaction button */}
+            <Grid
+              container
+              spacing={3}
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mb: 4 }}
+            >
+              <Grid item xs={12} sm={7}>
+                <Box textAlign={{ xs: "center", sm: "left" }}>
+                  <Typography
+                    sx={{
+                      color: "#58667e",
+                      fontWeight: 500,
+                      fontSize: { xs: "1rem", sm: "1.1rem" },
+                      mb: 1,
+                    }}
+                  >
+                    {data.userDetails?.first_name} {data.userDetails?.last_name}&#39;s Portfolio
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+                      fontWeight: 800,
+                      letterSpacing: "-0.5px",
+                      background: "linear-gradient(90deg, #1a2c50, #0074e4)",
+                      backgroundClip: "text",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    ${data.userDetails?.total_value_now}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={5}
+                sx={{
+                  display: "flex",
+                  justifyContent: { xs: "center", sm: "flex-end" },
+                }}
               >
-                {data.userDetails?.first_name} {data.userDetails?.last_name}'s Portfolio
-              </Typography>
-              <Typography
-                fontWeight={700}
-                sx={{ fontSize: { xs: "28px", sm: "32px" } }}
-              >
-                ${data.userDetails?.total_value_now}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            sx={{
-              display: "flex",
-              justifyContent: { xs: "center", sm: "flex-end" },
-            }}
-          >
-            <Button
-              variant="contained"
+                <Button
+                  variant="contained"
+                  sx={{
+                    borderRadius: "10px",
+                    minWidth: { xs: "140px", sm: "180px" },
+                    height: { xs: "48px", sm: "56px" },
+                    px: { xs: 3, sm: 4 },
+                    background: "linear-gradient(90deg, #0074e4, #005bb7)",
+                    boxShadow: "0 4px 14px rgba(0, 116, 228, 0.4)",
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      background: "linear-gradient(90deg, #005bb7, #004a94)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 6px 20px rgba(0, 116, 228, 0.5)",
+                    },
+                  }}
+                  startIcon={<Add />}
+                  onClick={handleOpenModal}
+                >
+                  <Typography
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 600,
+                      fontSize: { xs: "15px", sm: "16px" },
+                    }}
+                  >
+                    Add Transaction
+                  </Typography>
+                </Button>
+              </Grid>
+            </Grid>
+
+            {/* Performers Cards */}
+            <Performers
+              allTimeProfit={data.portfolioStats.allTimeProfit}
+              bestPerformer={data.portfolioStats.bestPerformer}
+              worstPerformer={data.portfolioStats.worstPerformer}
+            />
+
+            <Divider
               sx={{
-                background: "linear-gradient(to right, #6366f1, #3b82f6)",
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 600,
-                px: 3,
-                py: 1.5,
-                boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
-                ":hover": {
-                  background: "linear-gradient(to right, #4f46e5, #2563eb)",
+                my: 4,
+                "&::before, &::after": {
+                  borderColor: "rgba(0, 116, 228, 0.2)",
                 },
               }}
-              startIcon={<Add />}
-              onClick={handleOpenModal}
+            />
+
+            {/* Tabs Navigation */}
+            <Tabs
+              value={selectedTab}
+              onChange={handleTabChange}
+              variant="fullWidth"
+              sx={{
+                "& .MuiTab-root": {
+                  color: "#58667e",
+                  fontWeight: 600,
+                  fontSize: { xs: "0.9rem", sm: "1rem" },
+                  textTransform: "none",
+                  transition: "all 0.2s ease",
+                  minHeight: "56px",
+                  "&:hover": {
+                    color: "#0074e4",
+                    backgroundColor: "rgba(0, 116, 228, 0.04)",
+                  },
+                },
+                "& .Mui-selected": {
+                  color: "#0074e4 !important",
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: "#0074e4",
+                  height: 3,
+                  borderRadius: "3px 3px 0 0",
+                },
+              }}
             >
-              Add Transaction
-            </Button>
-          </Grid>
-        </Grid>
+              {tabs.map((tab, index) => (
+                <Tab key={index} label={tab} />
+              ))}
+            </Tabs>
 
-        <Performers
-          allTimeProfit={data.portfolioStats.allTimeProfit}
-          bestPerformer={data.portfolioStats.bestPerformer}
-          worstPerformer={data.portfolioStats.worstPerformer}
-        />
-        <Divider sx={{ width: "100%", mt: 2 }} />
-
-        <Tabs value={selectedTab} onChange={handleTabChange}>
-          {tabs.map((tab, i) => (
-            <Tab key={i} label={tab} />
-          ))}
-        </Tabs>
-
-        {selectedTab === 0 && (
-          <Assets
-            onBuySellClick={handleAssetBuySell}
-            onViewDetailedAnalysis={handleViewDetailedAnalysis}
-            assets={data.assets}
-            loading={loading.assets}
-          />
-        )}
-        {selectedTab === 1 && (
-          <Transactions
-            data={formattedTransactions}
-            onTransactionDeleted={refreshUserData}
-          />
-        )}
+            {/* Tab Content */}
+            <Box sx={{ mt: 3, minHeight: "400px" }}>
+              {selectedTab === 0 && (
+                <Fade in={selectedTab === 0} timeout={500}>
+                  <div>
+                    <Assets
+                      onBuySellClick={handleAssetBuySell}
+                      onViewDetailedAnalysis={handleViewDetailedAnalysis}
+                      assets={data.assets}
+                      loading={loading.assets}
+                    />
+                  </div>
+                </Fade>
+              )}
+              
+              {selectedTab === 1 && (
+                <Fade in={selectedTab === 1} timeout={500}>
+                  <div>
+                    <Transactions
+                      data={formattedTransactions}
+                      onTransactionDeleted={refreshUserData}
+                    />
+                  </div>
+                </Fade>
+              )}
+            </Box>
+          </Box>
+        </Paper>
+        
         <TransactionModal
           quantity={quantity}
           pricePerCoin={pricePerCoin}
