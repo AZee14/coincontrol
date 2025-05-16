@@ -37,7 +37,6 @@ export async function fetchValidDexPairs() {
   try {
     // Fetch exchanges networks mapping
     const exchangesNetworks = await fetchExchangesNetworksMapping();
-    console.log(exchangesNetworks);
 
     // Fetch DEX pairs from CoinMarketCap for each exchange-network pair
     const pairsPromises = exchangesNetworks.map(async (item: any) => {
@@ -63,7 +62,6 @@ export async function fetchValidDexPairs() {
     const allPairs = await Promise.all(pairsPromises);
 
     const arrayOfPairs = flattenFirstLevel(allPairs)
-    console.log(arrayOfPairs)
 
     return arrayOfPairs;
   } catch (error) {
@@ -82,7 +80,6 @@ export async function updateDexExchanges() {
     if (response.status !== 201) {
       throw new Error(`Error posting exchanges: ${response.statusText}`);
     }
-    console.log("DEX Exchanges saved:", response.data);
   } catch (error) {
     console.error("Error updating DEX exchanges:", error);
   }
@@ -98,7 +95,6 @@ export async function updateDexPairs() {
     if (response.status !== 201) {
       throw new Error(`Error posting pairs: ${response.statusText}`);
     }
-    console.log(`DEX Pairs saved:`, response.data);
   } catch (error) {
     console.error(`Error updating DEX pairs:`, error);
   }

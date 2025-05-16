@@ -31,7 +31,6 @@ export const addUser = async (userData:{userId:string,firstName:string,lastName:
       }
 
       const data = await response.json();
-      console.log('User saved:', data);
     } catch (error) {
       console.error('Error sending user data:', error);
     }

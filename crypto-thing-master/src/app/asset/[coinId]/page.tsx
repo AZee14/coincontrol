@@ -12,7 +12,7 @@ function Coin({
   const { user, isInitialized } = useStytchUser();
   return (
     <>
-      {isInitialized && user ? <CoinPage coinId={coinId} /> : <LandingPage />}
+      {/* {isInitialized && user ? <CoinPage coinId={coinId} /> : <LandingPage />} */}
     </>
   );
 }

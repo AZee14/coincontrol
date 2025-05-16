@@ -24,7 +24,6 @@ export const sendTransactionData = async (
     }
 
     const data = await response.json();
-    console.log("Transaction saved:", data);
   } catch (error) {
     console.error("Error sending transaction data:", error);
   }
@@ -47,7 +46,6 @@ export const deleteTransaction = async (transactionId: string) => {
     }
 
     const data = await response.json();
-    console.log("Transaction deleted:", data);
   } catch (error) {
     console.error("Error sending transaction data:", error);
   }

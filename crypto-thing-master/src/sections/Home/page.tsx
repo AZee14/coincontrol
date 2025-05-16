@@ -79,8 +79,6 @@ const HomePage: React.FC = () => {
   });
   // UI state
   const [selectedTab, setSelectedTab] = useState(0);
-  const [selectedCoin, setSelectedCoin] = useState<TopCoin | null>(null);
-  const [chartLoaded, setChartLoaded] = useState(false);
   const [itemTypeTab, setItemTypeTab] = useState(0); // 0 = Coin, 1 = DEX Pair
 
   // Modal state
@@ -133,39 +131,39 @@ const HomePage: React.FC = () => {
         setData((prev) => ({ ...prev, dexPairs: dataCache.dexPairs || [] }));
       }
 
-      if (!dataCache.topCoins) {
-        fetchPromises.push(
-          fetch("/api/coins/top")
-            .then((res) => res.json())
-            .then((coins) => {
-              dataCache.topCoins = coins;
-              setData((prev) => ({ ...prev, topCoins: coins }));
+      // if (!dataCache.topCoins) {
+      //   fetchPromises.push(
+      //     fetch("/api/coins/top")
+      //       .then((res) => res.json())
+      //       .then((coins) => {
+      //         dataCache.topCoins = coins;
+      //         setData((prev) => ({ ...prev, topCoins: coins }));
 
-              // Set Bitcoin as default selected coin
-              const bitcoin =
-                coins.find((coin: TopCoin) => coin.symbol === "BTC") ||
-                coins[0];
-              setSelectedCoin(bitcoin);
+      //         // Set Bitcoin as default selected coin
+      //         const bitcoin =
+      //           coins.find((coin: TopCoin) => coin.symbol === "BTC") ||
+      //           coins[0];
+      //         setSelectedCoin(bitcoin);
 
-              // Simulate chart loading
-              setTimeout(() => {
-                setChartLoaded(true);
-                setLoading((prev) => ({ ...prev, chartLoaded: true }));
-              }, 800);
-            })
-        );
-      } else {
-        setData((prev) => ({ ...prev, topCoins: dataCache.topCoins || [] }));
-        const bitcoin =
-          dataCache.topCoins?.find((coin) => coin.symbol === "BTC") ||
-          dataCache.topCoins?.[0];
-        setSelectedCoin(bitcoin || null);
+      //         // Simulate chart loading
+      //         setTimeout(() => {
+      //           setChartLoaded(true);
+      //           setLoading((prev) => ({ ...prev, chartLoaded: true }));
+      //         }, 800);
+      //       })
+      //   );
+      // } else {
+      //   setData((prev) => ({ ...prev, topCoins: dataCache.topCoins || [] }));
+      //   const bitcoin =
+      //     dataCache.topCoins?.find((coin) => coin.symbol === "BTC") ||
+      //     dataCache.topCoins?.[0];
+      //   setSelectedCoin(bitcoin || null);
 
-        setTimeout(() => {
-          setChartLoaded(true);
-          setLoading((prev) => ({ ...prev, chartLoaded: true }));
-        }, 100);
-      }
+      //   setTimeout(() => {
+      //     setChartLoaded(true);
+      //     setLoading((prev) => ({ ...prev, chartLoaded: true }));
+      //   }, 100);
+      // }
 
       // 2. Fetch user-specific data
       fetchPromises.push(

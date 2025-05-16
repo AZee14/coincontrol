@@ -70,11 +70,12 @@ export async function GET(req: Request) {
     // 4) Compute metrics
     const loss = profit_loss;
     const investment = amount * avgbuyprice;
-    const percentageLoss = investment > 0 ? (loss / investment) * 100 : 0;
+    const percentageLoss =
+      investment > 0 ? (-profit_loss / investment) * 100 : 0;
 
     const result = {
       coin_id: coin_id ?? contract_address,
-      coin_name:name,
+      coin_name: name,
       total_loss: loss,
       percentage_loss: Number(percentageLoss.toFixed(2)),
     };

@@ -130,15 +130,6 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
           setPricePerCoin(String(price));
         }
 
-        // Debug logging
-        console.log(
-          "Selected item:",
-          itemTypeTab === 0
-            ? `Coin: ${value.name || "Unknown"} (ID: ${value.coin_id || "N/A"})`
-            : `DEX Pair: ${value.name || "Unknown"} (Address: ${
-                value.contract_address || "N/A"
-              })`
-        );
       },
       [itemTypeTab, setPricePerCoin]
     );
@@ -174,17 +165,6 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
 
     const handleAddTransaction = useCallback(async () => {
       if (!selectedItem || !quantity || !pricePerCoin || !dateTime) return;
-
-      // Debug logging
-      console.log("Adding transaction with:", {
-        type: modalTab === 0 ? "Buy" : "Sell",
-        itemType: itemTypeTab === 0 ? "Coin" : "DEX Pair",
-        identifier:
-          itemTypeTab === 0
-            ? selectedItem.coin_id
-            : selectedItem.contract_address,
-        selectedItem,
-      });
 
       handleCloseModal();
       try {

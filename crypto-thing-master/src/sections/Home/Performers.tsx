@@ -28,7 +28,8 @@ interface Props {
 function Performers({ allTimeProfit, bestPerformer, worstPerformer }: Props) {
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined) return "$0";
-    return `$${Math.abs(value).toLocaleString("en-US", {
+    return `$${value.toLocaleString("en-US", {
+      // Math.abs() removes negative sign
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -36,7 +37,7 @@ function Performers({ allTimeProfit, bestPerformer, worstPerformer }: Props) {
 
   const formatPercentage = (value: number | undefined) => {
     if (value === undefined) return "0%";
-    return `${Math.abs(value).toFixed(2)}%`;
+    return `${Math.abs(value).toFixed(2)}%`; // Math.abs() removes negative sign
   };
 
   const cards = [
