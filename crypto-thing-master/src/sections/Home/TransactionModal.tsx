@@ -111,7 +111,7 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
     );
 
     const handleOptionChange = useCallback(
-      (_: any, value: any) => {
+      (_: React.SyntheticEvent, value: any) => {
         if (!value) {
           setPricePerCoin("");
           setSelectedItem(null);
@@ -120,17 +120,24 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
 
         setSelectedItem(value);
         if (itemTypeTab === 0) {
-          setPricePerCoin(String(value.marketprice));
+          // For coins, safely access marketprice
+          const marketPrice =
+            value.marketprice !== undefined ? value.marketprice : "";
+          setPricePerCoin(String(marketPrice));
         } else {
-          setPricePerCoin(String(value.price));
+          // For DEX pairs, safely access price
+          const price = value.price !== undefined ? value.price : "";
+          setPricePerCoin(String(price));
         }
 
         // Debug logging
         console.log(
           "Selected item:",
           itemTypeTab === 0
-            ? `Coin: ${value.coin_name} (ID: ${value.coin_id})`
-            : `DEX Pair: ${value.name} (Address: ${value.contract_address})`
+            ? `Coin: ${value.name || "Unknown"} (ID: ${value.coin_id || "N/A"})`
+            : `DEX Pair: ${value.name || "Unknown"} (Address: ${
+                value.contract_address || "N/A"
+              })`
         );
       },
       [itemTypeTab, setPricePerCoin]
@@ -219,11 +226,24 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
     ]);
 
     const options = itemTypeTab === 0 ? coins : dexPairs;
+    
     const getOptionLabel = useCallback(
       (option: any) =>
         itemTypeTab === 0
-          ? `${option.coin_name} (${option.symbol})`
+          ? `${option.coin_name || option.name} (${option.symbol})`
           : option.name,
+      [itemTypeTab]
+    );
+
+    // Add a getOptionKey function to ensure unique keys
+    const getOptionKey = useCallback(
+      (option: any) => {
+        if (itemTypeTab === 0) {
+          return option.coin_id?.toString() || Math.random().toString();
+        } else {
+          return option.contract_address?.toString() || Math.random().toString();
+        }
+      },
       [itemTypeTab]
     );
 
@@ -276,20 +296,22 @@ const TransactionModal: React.FC<TransactionModalProps> = React.memo(
               <Tab label="Coin" />
               <Tab label="DEX Pair" />
             </Tabs>
-
             <Autocomplete
               options={options}
               value={selectedItem}
               onChange={handleOptionChange}
               getOptionLabel={getOptionLabel}
-              key={`autocomplete-${itemTypeTab}`} // Add key to force re-render when tab changes
+              key={`autocomplete-${itemTypeTab}`} // Force re-render when tab changes
+              getOptionKey={getOptionKey}
               isOptionEqualToValue={(option, value) => {
                 if (!option || !value) return false;
 
-                // Use appropriate key based on item type
+                // Use appropriate unique identifier based on item type
                 if (itemTypeTab === 0) {
+                  // For coins, use coin_id as the unique identifier
                   return option.coin_id === value.coin_id;
                 } else {
+                  // For DEX pairs, use contract_address as the unique identifier
                   return option.contract_address === value.contract_address;
                 }
               }}

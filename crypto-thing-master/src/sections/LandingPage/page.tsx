@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -9,18 +9,10 @@ import {
   Tabs,
   Typography,
   Paper,
-  Skeleton,
   Fade,
   useTheme,
-  useMediaQuery,
-  Chip,
-  FormControl,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
 } from "@mui/material";
 import Link from "next/link";
-import CoinChart from "@/components/CoinChart";
 import Assets from "../Home/Assets";
 import Transactions from "../Home/Transactions";
 
@@ -38,58 +30,13 @@ interface TopCoin {
 
 export default function LandingPage() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedTab, setSelectedTab] = useState(0);
-  const [topCoins, setTopCoins] = useState<TopCoin[]>([]);
-  const [featuredCoin, setFeaturedCoin] = useState<TopCoin | null>(null);
-  const [selectedCoin, setSelectedCoin] = useState<TopCoin | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [chartLoaded, setChartLoaded] = useState(false);
 
   const tabs = ["Assets", "Transactions"];
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setSelectedTab(newValue);
   };
-
-  const handleCoinChange = (event: SelectChangeEvent<string>) => {
-    const coinId = event.target.value;
-    const coin = topCoins.find((c) => c.coin_id.toString() === coinId);
-    if (coin) {
-      setSelectedCoin(coin);
-      setChartLoaded(false);
-      setTimeout(() => setChartLoaded(true), 800);
-    }
-  };
-
-  useEffect(() => {
-    const fetchTopCoins = async () => {
-      try {
-        const response = await fetch("/api/coins/top");
-        if (!response.ok) {
-          throw new Error("Failed to fetch top coins");
-        }
-        const data = await response.json();
-        setTopCoins(data);
-
-        // Set Bitcoin as the featured coin (or the first coin in the list)
-        const bitcoin =
-          data.find((coin: TopCoin) => coin.symbol === "BTC") || data[0];
-        setFeaturedCoin(bitcoin);
-        setSelectedCoin(bitcoin);
-
-        // Simulate chart loading
-        setTimeout(() => setChartLoaded(true), 800);
-      } catch (error) {
-        console.error("Error fetching top coins:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTopCoins();
-  }, []);
 
   return (
     <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 4 } }}>

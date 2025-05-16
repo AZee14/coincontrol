@@ -127,7 +127,7 @@ const CoinsTable: React.FC<CoinsTableProps> = React.memo(
                   paddingTop: "16px",
                   paddingBottom: "16px",
                   paddingRight: 0,
-                  textAlign: "right",
+                  textAlign: "center",
                 }}
               >
                 <Typography sx={{ fontSize: "12px", fontWeight: "600" }}>
