@@ -168,21 +168,21 @@ function AppBar() {
   };
 
   // UNCOMMENT THIS
-  React.useEffect(() => {
-    // run immediately
-    // updateCoins();
-    // updateDexExchanges();
-    // updateDexPairs();
+  // React.useEffect(() => {
+  //   // run immediately
+  //   // updateCoins();
+  //   // updateDexExchanges();
+  //   // updateDexPairs();
 
-    // then schedule
-    const interval = setInterval(() => {
-      updateCoins();
-      updateDexExchanges();
-      updateDexPairs();
-    }, COIN_POST_REQUEST_TIME);
+  //   // then schedule
+  //   const interval = setInterval(() => {
+  //     updateCoins();
+  //     updateDexExchanges();
+  //     updateDexPairs();
+  //   }, COIN_POST_REQUEST_TIME);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
   React.useEffect(() => {
     fetchNotis();
 
