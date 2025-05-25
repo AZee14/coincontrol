@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Box, TablePagination, Paper, Container, Fade, Button } from "@mui/material";
+import { Box, TablePagination, Paper, Container, Fade } from "@mui/material";
 import { useRouter } from "next/navigation";
-import CompareIcon from "@mui/icons-material/CompareArrows";
 import "./types";
 import { formatNumber, formatDate } from "@/utils/allCurrencies";
 import TabPanel from "./TabPanel";
@@ -134,11 +133,6 @@ export default function AllCurrencies() {
     [router]
   );
 
-  // Navigate to compare page
-  const handleNavigateToCompare = useCallback(() => {
-    router.push('/compare');
-  }, [router]);
-
   // Memoized filtered data
   const filteredData = useMemo(() => {
     const term = debouncedSearchTerm.toLowerCase();
@@ -243,28 +237,6 @@ export default function AllCurrencies() {
               dexExchangesGrowing={marketStats.dexExchangesGrowing}
             />
           )}
-        </Box>
-
-        {/* Compare Button */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<CompareIcon />}
-            onClick={handleNavigateToCompare}
-            sx={{
-              backgroundColor: '#0074e4',
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(0, 116, 228, 0.2)',
-              '&:hover': {
-                backgroundColor: '#0063c1',
-                boxShadow: '0 6px 16px rgba(0, 116, 228, 0.3)',
-              },
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            Compare Currencies
-          </Button>
         </Box>
 
         {/* Search and Tabs - Positioned outside the relative Box for sticky to work */}

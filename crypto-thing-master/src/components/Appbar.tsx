@@ -200,12 +200,11 @@ function AppBar() {
   return (
     <MuiAppBar
       position="sticky"
-      elevation={4}
+      elevation={1}
       sx={{
-        backgroundColor: "#1a0033",
-        color: "#ff00ff",
-        borderBottom: `1px solid ${alpha("#ff00ff", 0.15)}`,
-        boxShadow: "0 4px 20px rgba(255, 0, 255, 0.15)",
+        backgroundColor: "white",
+        color: theme.palette.primary.main,
+        borderBottom: `1px solid ${alpha("#000", 0.06)}`,
       }}
     >
       <Container maxWidth="xl">
@@ -230,7 +229,6 @@ function AppBar() {
                   width: "2.5rem",
                   height: "2.5rem",
                   borderRadius: "8px",
-                  boxShadow: "0 0 10px rgba(255, 0, 255, 0.5)",
                 }}
                 priority
               />
@@ -245,13 +243,9 @@ function AppBar() {
                 fontFamily: "monospace",
                 fontWeight: 700,
                 letterSpacing: ".1rem",
-                background: "linear-gradient(90deg, #ff00ff, #00ffff)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "#21527b",
                 textDecoration: "none",
                 ml: 1,
-                textShadow: "0 0 10px rgba(255, 0, 255, 0.5)",
               }}
             >
               Crypto Coin Control
@@ -266,7 +260,7 @@ function AppBar() {
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              sx={{ color: "#ff00ff" }}
+              color="inherit"
               edge="start"
             >
               <MenuIcon />
@@ -294,9 +288,6 @@ function AppBar() {
                   mt: 1.5,
                   width: 200,
                   borderRadius: "8px",
-                  backgroundColor: "#2d0a4f",
-                  border: "1px solid rgba(255, 0, 255, 0.2)",
-                  boxShadow: "0 4px 20px rgba(255, 0, 255, 0.25)",
                 },
               }}
             >
@@ -311,13 +302,9 @@ function AppBar() {
                     borderRadius: "4px",
                     mx: 1,
                     my: 0.5,
-                    color: "#c4a8ff",
                     "&.Mui-selected": {
-                      backgroundColor: alpha("#ff00ff", 0.15),
-                      color: "#ff00ff",
-                    },
-                    "&:hover": {
-                      backgroundColor: alpha("#ff00ff", 0.1),
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      color: theme.palette.primary.main,
                     },
                   }}
                 >
@@ -326,8 +313,8 @@ function AppBar() {
                       sx={{
                         color:
                           pathname === link.href
-                            ? "#ff00ff"
-                            : "#c4a8ff",
+                            ? theme.palette.primary.main
+                            : "inherit",
                         mr: 1.5,
                       }}
                     >
@@ -338,7 +325,7 @@ function AppBar() {
                 </MenuItem>
               ))}
 
-              <Divider sx={{ my: 1, borderColor: "rgba(255, 0, 255, 0.15)" }} />
+              <Divider sx={{ my: 1 }} />
 
               <MenuItem
                 onClick={(event) => {
@@ -349,14 +336,7 @@ function AppBar() {
                 }}
                 component={Link}
                 href={isLoggedIn ? "/" : "/login"}
-                sx={{ 
-                  mx: 1, 
-                  borderRadius: "4px",
-                  color: "#c4a8ff",
-                  "&:hover": {
-                    backgroundColor: alpha("#ff00ff", 0.1),
-                  },
-                }}
+                sx={{ mx: 1, borderRadius: "4px" }}
               >
                 <Typography>{isLoggedIn ? "Logout" : "Login"}</Typography>
               </MenuItem>
@@ -374,7 +354,6 @@ function AppBar() {
                 width: "2.25rem",
                 height: "2.25rem",
                 borderRadius: "6px",
-                boxShadow: "0 0 8px rgba(255, 0, 255, 0.5)",
               }}
               priority
             />
@@ -394,10 +373,7 @@ function AppBar() {
               letterSpacing: ".05rem",
               textDecoration: "none",
               ml: 1.5,
-              background: "linear-gradient(90deg, #ff00ff, #00ffff)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#21527b",
             }}
           >
             Crypto Coin Control
@@ -425,20 +401,18 @@ function AppBar() {
                   px: 2.5,
                   color:
                     pathname === link.href
-                      ? "#1a0033"
-                      : "#c4a8ff",
+                      ? "white"
+                      : theme.palette.primary.main,
                   display: "flex",
                   fontWeight: 500,
                   borderRadius: "8px",
                   textTransform: "none",
                   fontSize: "0.95rem",
-                  backgroundColor: pathname === link.href ? "#ff00ff" : "transparent",
                   "&:hover": {
                     backgroundColor:
                       pathname === link.href
-                        ? "#ff33ff"
-                        : alpha("#ff00ff", 0.1),
-                    boxShadow: pathname === link.href ? "0 0 15px rgba(255, 0, 255, 0.5)" : "none",
+                        ? theme.palette.primary.dark
+                        : alpha(theme.palette.primary.main, 0.08),
                   },
                 }}
               >
@@ -454,16 +428,13 @@ function AppBar() {
                 onClick={handleOpenNotifMenu}
                 size="large"
                 sx={{
-                  color: "#c4a8ff",
+                  color: theme.palette.text.secondary,
                   border: Boolean(anchorElNotif)
-                    ? `1px solid ${alpha("#ff00ff", 0.5)}`
+                    ? `1px solid ${alpha(theme.palette.primary.main, 0.5)}`
                     : "none",
                   bgcolor: Boolean(anchorElNotif)
-                    ? alpha("#ff00ff", 0.1)
+                    ? alpha(theme.palette.primary.main, 0.08)
                     : "transparent",
-                  "&:hover": {
-                    bgcolor: alpha("#ff00ff", 0.08),
-                  },
                 }}
               >
                 <Badge badgeContent={notifs.length} color="error">
@@ -485,9 +456,6 @@ function AppBar() {
                   mt: 1.5,
                   borderRadius: "10px",
                   overflow: "hidden",
-                  backgroundColor: "#2d0a4f",
-                  border: "1px solid rgba(255, 0, 255, 0.2)",
-                  boxShadow: "0 4px 20px rgba(255, 0, 255, 0.25)",
                 }}
               >
                 <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
@@ -498,23 +466,17 @@ function AppBar() {
                       alignItems: "center",
                       px: 2,
                       py: 1,
-                      borderBottom: `1px solid ${alpha("#ff00ff", 0.15)}`,
+                      borderBottom: `1px solid ${alpha("#000", 0.06)}`,
                     }}
                   >
-                    <Typography variant="subtitle2" fontWeight={600} sx={{ color: "#f2e6ff" }}>
+                    <Typography variant="subtitle2" fontWeight={600}>
                       Notifications
                     </Typography>
                     {notifs.length > 0 && (
                       <Button
                         size="small"
                         onClick={handleClearAllNotifications}
-                        sx={{ 
-                          fontSize: "0.75rem",
-                          color: "#00ffff",
-                          "&:hover": {
-                            backgroundColor: alpha("#00ffff", 0.1),
-                          }
-                        }}
+                        sx={{ fontSize: "0.75rem" }}
                       >
                         Clear all
                       </Button>
@@ -523,7 +485,7 @@ function AppBar() {
 
                   {notificationLoading ? (
                     <Box sx={{ p: 2, textAlign: "center" }}>
-                      <CircularProgress size={24} sx={{ color: "#ff00ff" }} />
+                      <CircularProgress size={24} />
                     </Box>
                   ) : (
                     <MenuList sx={{ py: 0.5 }}>
@@ -538,14 +500,10 @@ function AppBar() {
                             mx: 0.5,
                             my: 0.25,
                             whiteSpace: "normal",
-                            color: "#c4a8ff",
-                            "&:hover": {
-                              backgroundColor: alpha("#ff00ff", 0.1),
-                            },
                           }}
                         >
                           <Box>
-                            <Typography variant="body2" fontWeight={500} sx={{ color: "#f2e6ff" }}>
+                            <Typography variant="body2" fontWeight={500}>
                               {notification.message}
                             </Typography>
                             <Box
@@ -558,7 +516,7 @@ function AppBar() {
                             >
                               <Typography
                                 variant="caption"
-                                sx={{ color: "#c4a8ff" }}
+                                color="text.secondary"
                               >
                                 {formatDistanceToNow(
                                   new Date(notification.created_at),
@@ -577,64 +535,64 @@ function AppBar() {
                                       switch (notification.type) {
                                         case "profit":
                                           return alpha(
-                                            "#33ff33",
-                                            0.15
+                                            theme.palette.success.main,
+                                            0.1
                                           );
                                         case "loss":
                                           return alpha(
-                                            "#ff3333",
-                                            0.15
+                                            theme.palette.error.main,
+                                            0.1
                                           );
                                         case "Buy":
                                           return alpha(
-                                            "#00ffff",
-                                            0.15
+                                            theme.palette.info.main,
+                                            0.1
                                           );
                                         case "Sell":
                                           return alpha(
-                                            "#ffcc00",
-                                            0.15
+                                            theme.palette.warning.main,
+                                            0.1
                                           );
                                         case "transaction":
                                           return alpha(
-                                            "#00ffff",
-                                            0.15
+                                            theme.palette.info.main,
+                                            0.1
                                           );
                                         case "price_alert":
                                           return alpha(
-                                            "#33ff33",
-                                            0.15
+                                            theme.palette.success.main,
+                                            0.1
                                           );
                                         case "portfolio":
                                           return alpha(
-                                            "#ffcc00",
-                                            0.15
+                                            theme.palette.warning.main,
+                                            0.1
                                           );
                                         default:
                                           return alpha(
-                                            "#ff00ff",
-                                            0.15
+                                            theme.palette.primary.main,
+                                            0.1
                                           );
                                       }
                                     })(),
                                     color: (() => {
                                       switch (notification.type) {
                                         case "profit":
-                                          return "#33ff33";
+                                          return theme.palette.success.main;
                                         case "loss":
-                                          return "#ff3333";
+                                          return theme.palette.error.main;
                                         case "Buy":
-                                          return "#00ffff";
+                                          return theme.palette.info.main;
                                         case "Sell":
-                                          return "#ffcc00";
+                                          return theme.palette.warning.main;
                                         case "transaction":
-                                          return "#00ffff";
+                                          return theme.palette.info.main;
                                         case "price_alert":
-                                          return "#33ff33";
+                                          return theme.palette.success.main;
                                         case "portfolio":
-                                          return "#ffcc00";
+                                          return theme.palette.warning.main;
                                         default:
-                                          return "#ff00ff";
+                                          return theme.palette.primary.main;
                                       }
                                     })(),
                                   }}
@@ -651,7 +609,7 @@ function AppBar() {
                       {notifs.length === 0 && (
                         <MenuItem disabled sx={{ py: 2 }}>
                           <Box sx={{ textAlign: "center", width: "100%" }}>
-                            <Typography variant="body2" sx={{ color: "#c4a8ff" }}>
+                            <Typography variant="body2" color="text.secondary">
                               No new notifications
                             </Typography>
                           </Box>
@@ -673,15 +631,11 @@ function AppBar() {
                   borderRadius: "8px",
                   textTransform: "none",
                   border: Boolean(anchorElUser)
-                    ? `1px solid ${alpha("#ff00ff", 0.5)}`
+                    ? `1px solid ${alpha(theme.palette.primary.main, 0.5)}`
                     : "none",
                   bgcolor: Boolean(anchorElUser)
-                    ? alpha("#ff00ff", 0.1)
+                    ? alpha(theme.palette.primary.main, 0.08)
                     : "transparent",
-                  color: "#c4a8ff",
-                  "&:hover": {
-                    bgcolor: alpha("#ff00ff", 0.08),
-                  },
                 }}
                 endIcon={<ChevronDown size={16} />}
               >
@@ -690,10 +644,9 @@ function AppBar() {
                     width: 32,
                     height: 32,
                     bgcolor: isLoggedIn
-                      ? "#ff00ff"
-                      : "rgba(255, 0, 255, 0.3)",
+                      ? theme.palette.primary.main
+                      : "rgba(0,0,0,0.12)",
                     mr: 1,
-                    boxShadow: isLoggedIn ? "0 0 8px rgba(255, 0, 255, 0.5)" : "none",
                   }}
                 >
                   {user?.name?.first_name?.charAt(0) || ""}
@@ -704,7 +657,6 @@ function AppBar() {
                     sx={{
                       fontWeight: 500,
                       display: { xs: "none", sm: "block" },
-                      color: "#f2e6ff",
                     }}
                   >
                     {isLoggedIn ? user?.name?.first_name || "User" : "Login"}
@@ -726,9 +678,6 @@ function AppBar() {
                   minWidth: 200,
                   borderRadius: "10px",
                   overflow: "hidden",
-                  backgroundColor: "#2d0a4f",
-                  border: "1px solid rgba(255, 0, 255, 0.2)",
-                  boxShadow: "0 4px 20px rgba(255, 0, 255, 0.25)",
                 }}
               >
                 <ClickAwayListener onClickAway={handleCloseUserMenu}>
@@ -737,13 +686,13 @@ function AppBar() {
                       <Box
                         sx={{
                           p: 2,
-                          borderBottom: `1px solid ${alpha("#ff00ff", 0.15)}`,
+                          borderBottom: `1px solid ${alpha("#000", 0.06)}`,
                         }}
                       >
-                        <Typography variant="body2" sx={{ color: "#c4a8ff" }}>
+                        <Typography variant="body2" color="text.secondary">
                           Signed in as
                         </Typography>
-                        <Typography variant="subtitle2" fontWeight={600} sx={{ color: "#f2e6ff" }}>
+                        <Typography variant="subtitle2" fontWeight={600}>
                           {user?.name?.first_name || "User"}
                         </Typography>
                       </Box>
@@ -760,14 +709,14 @@ function AppBar() {
                             sx={{
                               py: 1.5,
                               px: 2,
-                              color: "#ff3333",
+                              color: theme.palette.error.main,
                               borderRadius: "4px",
                               mx: 0.5,
                               my: 0.25,
                               "&:hover": {
                                 backgroundColor: alpha(
-                                  "#ff3333",
-                                  0.1
+                                  theme.palette.error.main,
+                                  0.08
                                 ),
                               },
                             }}
@@ -783,10 +732,6 @@ function AppBar() {
                           sx={{
                             py: 1.5,
                             px: 2,
-                            color: "#00ffff",
-                            "&:hover": {
-                              backgroundColor: alpha("#00ffff", 0.1),
-                            },
                           }}
                         >
                           <Typography variant="body2">Login</Typography>
